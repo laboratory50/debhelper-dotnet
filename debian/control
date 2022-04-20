@@ -11,7 +11,7 @@ Vcs-Browser: https://gitlab.com/lab50/netcore/dh-dotnet
 Package: dh-dotnet-lab50
 Architecture: all
 Multi-Arch: foreign
-Depends: debhelper (>= 10), libfile-find-rule-perl,
+Depends: debhelper (>= 10), libfile-find-rule-perl, libjson-perl,
  ${misc:Depends}, ${perl:Depends}
 Description: сборочная система .Net Core проектов
  Пакет содержит модуль сборочной системы для Debhelper. Применяется

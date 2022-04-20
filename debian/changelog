@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (2) testing; urgency=medium
+
+  * Добавлена зависимость libjson-perl.
+
+ -- Шлыков Василий <vash@lab50.net>  Wed, 20 Apr 2022 18:35:31 +0300
+
 dh-dotnet-lab50 (1) testing; urgency=medium
 
   * Начальная версия.

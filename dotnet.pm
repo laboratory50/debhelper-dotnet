@@ -4,8 +4,6 @@
 # Copyright: © 2022 Laboratory 50
 # License: GPL-3+
 
-# libfile-find-rule-perl
-
 package Debian::Debhelper::Buildsystem::dotnet;
 
 use strict;
