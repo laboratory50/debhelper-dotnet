@@ -1,0 +1,11 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: dh-dotnet-lab50
+Source: http://lab50.net
+
+Files: *
+Copyright: ООО «Лаборатория 50», 2022
+License: GPL-3.0+
+
+Files: debian/*
+Copyright: © ООО «Лаборатория 50» <team@lab50.net>, 2022
+License: Proprietary
