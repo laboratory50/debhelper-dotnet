@@ -61,6 +61,6 @@
 каталоге исходного кода.
 
     %:
-            dh $@ --buildsystem=dotnet
+            dh $@ --buildsystem=arcade
 
 

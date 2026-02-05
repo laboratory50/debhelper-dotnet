@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (3) testing; urgency=medium
+
+  * Добавлен скрипт dh_installnuget
+
+ -- Шлыков Василий <vash@lab50.net>  Thu, 05 Feb 2026 11:00:51 +0300
+
 dh-dotnet-lab50 (2) testing; urgency=medium
 
   * Добавлена зависимость libjson-perl.

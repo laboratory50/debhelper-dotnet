@@ -1,1 +1,3 @@
-dotnet.pm /usr/share/perl5/Debian/Debhelper/Buildsystem
+arcade.pm /usr/share/perl5/Debian/Debhelper/Buildsystem
+dotnet.pm /usr/share/perl5/Debian/Debhelper/Sequence
+dh_installnuget /usr/bin

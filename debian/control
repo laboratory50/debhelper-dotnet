@@ -2,17 +2,22 @@ Source: dh-dotnet-lab50
 Section: devel
 Priority: optional
 Maintainer: Лаборатория 50 <team@lab50.net>
-Build-Depends: debhelper (>= 10), perl
+Build-Depends: debhelper-compat (= 13), perl:any
 Standards-Version: 4.2.1
 Homepage: http://lab50.net
-Vcs-Git: https://gitlab.com/lab50/netcore/dh-dotnet.git
-Vcs-Browser: https://gitlab.com/lab50/netcore/dh-dotnet
+Vcs-Git: https://github.com/laboratory50/debhelper-dotnet.git
+Vcs-Browser: https://github.com/laboratory50/debhelper-dotnet
 
 Package: dh-dotnet-lab50
 Architecture: all
-Multi-Arch: foreign
-Depends: debhelper (>= 10), libfile-find-rule-perl, libjson-perl,
+Provides: dh-sequence-dotnet
+Depends: debhelper (>= 13),
+ libfile-find-rule-perl,
+ libjson-perl,
+ libarchive-zip-perl,
+ libdigest-sha-perl,
+ libxml-libxml-perl
  ${misc:Depends}, ${perl:Depends}
-Description: сборочная система .Net Core проектов
+Description: сборочная система .Net проектов
  Пакет содержит модуль сборочной системы для Debhelper. Применяется
- для проектов, использующих .Net Core SDK.
+ для проектов, использующих .Net SDK.
