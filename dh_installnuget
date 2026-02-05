@@ -82,6 +82,8 @@ foreach my $package (@{$dh{DOPACKAGES}}) {
             # Проверить существование архива
             error("package $nugetfile not exists") unless -f $nugetfile;
 
+            print("\tInstalling $nugetfile\n");
+
             # Извлечь имя пакета и версию
             my ($id, $version) = get_nuget_metadata($nugetfile, $package);
             verbose_print("$nugetfile $id ($version)") if $dh{V};
