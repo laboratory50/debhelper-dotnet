@@ -88,9 +88,9 @@ foreach my $package (@{$dh{DOPACKAGES}}) {
             my ($id, $version) = get_nuget_metadata($nugetfile, $package);
             verbose_print("$nugetfile $id ($version)") if $dh{V};
             
-            # Целевой путь: debian/<пакет>/usr/lib/nuget/<id>/<version>/
+            # Целевой путь: debian/<пакет>/usr/lib/mono/sdk/8.0.124/nuget/<id>/<version>/
             my $tmpdir = tmpdir($package);
-            my $fulldest = "$tmpdir/usr/lib/nuget/" . lc($id) . "/" . lc($version);
+            my $fulldest = "$tmpdir/usr/lib/mono/sdk/8.0.124/nuget/" . lc($id) . "/" . lc($version);
 
             install_dir($fulldest) unless -d $fulldest;
 
