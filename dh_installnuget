@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-dh_installcatalogs - install and register SGML Catalogs
+dh_installnuget - install NuGet packages
 
 =cut
 
@@ -14,117 +14,121 @@ use Archive::Zip qw(:ERROR_CODES);
 use XML::LibXML;
 use File::Basename;
 
-=head1 SYNOPSIS
+# =============================================================================
+# 1. ОБРАБОТКА КАСТОМНЫХ ОПЦИЙ (ДО init())
+# =============================================================================
+my @nuget_base_paths = ();  # Начинаем с пустого массива
+my $has_custom_path = 0;    # Флаг: были ли переданы кастомные пути
 
-B<dh_installnuget> [S<I<debhelper options>>] [B<-n>]
+# Ищем и удаляем наши параметры из @ARGV перед инициализацией dh_lib
+my @clean_args;
+foreach my $arg (@ARGV) {
+    if ($arg =~ /^--nuget-path=(.+)$/) {
+        $has_custom_path = 1;
+        # Поддержка нескольких путей через запятую
+        my @paths = split(/,/, $1);
+        foreach my $path (@paths) {
+            $path =~ s/^\s+|\s+$//g;  # trim
+            $path =~ s/\/+$//;         # убрать trailing slash
+            push @nuget_base_paths, $path if $path ne '';
+        }
+        # Не добавляем этот аргумент в @clean_args (удаляем)
+    } else {
+        push @clean_args, $arg;
+    }
+}
 
-=head1 DESCRIPTION
+# Если кастомные пути не указаны — используем путь по умолчанию
+if (!$has_custom_path) {
+    @nuget_base_paths = ('/usr/lib/mono/sdk/8.0.124/nuget');
+}
 
-B<dh_installcatalogs> is a debhelper program that installs packed NuGet package
-to system wide location.
+# Убираем дубликаты путей
+my %seen_paths;
+@nuget_base_paths = grep { !$seen_paths{$_}++ } @nuget_base_paths;
 
-This command automatically unpacks B<.nuget> file, parses package
-metadata in B<.nuspec> and installs it into B</usr/lib/nuget>.
+# Заменяем @ARGV для корректной работы init()
+@ARGV = @clean_args;
 
-=head1 FILES
-
-=over 4
-
-=item debian/I<package>.nuget
-
-Lists the NuGet packages to be installed per package. Each line in that file
-should be of the form C<I<path>>, where I<path> indicates where the
-NuGet package resides in the source tree.
-
-=back
-
-=head1 OPTIONS
-
-=over 4
-
-=item B<-n>, B<--no-scripts>
-
-Do not modify F<postinst>/F<postrm>/F<prerm> scripts nor add an
-activation trigger.
-
-=back
-
-=head1 NOTES
-
-Note that this command is not idempotent. L<dh_prep(1)> should be
-called between invocations of this command. Otherwise, it may cause
-multiple instances of the same text to be added to maintainer scripts.
-
-=cut
-
+# =============================================================================
+# 2. ИНИЦИАЛИЗАЦИЯ DEBHELPER
+# =============================================================================
 init();
 
+# =============================================================================
+# 3. ОСНОВНАЯ ЛОГИКА
+# =============================================================================
 foreach my $package (@{$dh{DOPACKAGES}}) {
     my $nugetlistfile = pkgfile(
         {
-                'named'                            => 1,
-                'support-architecture-restriction' => 0
+            'named'                            => 1,
+            'support-architecture-restriction' => 0
         },
         $package,
         'nuget'
     );
 
     if ($nugetlistfile) {
-        # Прочитать пути к архивам
+        # Открываем файл списка один раз
         open(my $fd, '<:encoding(utf8)', $nugetlistfile)
             or error("open $nugetlistfile failed: $!");
 
+        my @nugetfiles;
         while (my $nugetfile = <$fd>) {
             chomp $nugetfile;
-            next if $nugetfile =~ /^\s*($|#)/;  # Пропустить пустые строки и комментарии
+            next if $nugetfile =~ /^\s*($|#)/;
             $nugetfile =~ s/^\s+|\s+$//g;
+            push @nugetfiles, $nugetfile if $nugetfile ne '';
+        }
+        close $fd;
 
-            # Проверить существование архива
-            error("package $nugetfile not exists") unless -f $nugetfile;
+        # Для каждого пути устанавливаем пакеты
+        foreach my $basepath (@nuget_base_paths) {
+            foreach my $nugetfile (@nugetfiles) {
+                # Проверить существование архива
+                error("package $nugetfile not exists") unless -f $nugetfile;
 
-            print("\tInstalling $nugetfile\n");
+                print("\tInstalling $nugetfile to $basepath\n");
 
-            # Извлечь имя пакета и версию
-            my ($id, $version) = get_nuget_metadata($nugetfile, $package);
-            verbose_print("$nugetfile $id ($version)") if $dh{V};
-            
-            # Целевой путь: debian/<пакет>/usr/lib/mono/sdk/8.0.124/nuget/<id>/<version>/
-            my $tmpdir = tmpdir($package);
-            my $fulldest = "$tmpdir/usr/lib/mono/sdk/8.0.124/nuget/" . lc($id) . "/" . lc($version);
+                # Извлечь имя пакета и версию
+                my ($id, $version) = get_nuget_metadata($nugetfile, $package);
+                verbose_print("$nugetfile $id ($version)") if $dh{V};
+                
+                my $tmpdir = tmpdir($package);
+                my $fulldest = "$tmpdir/$basepath/" . lc($id) . "/" . lc($version);
 
-            install_dir($fulldest) unless -d $fulldest;
+                install_dir($fulldest) unless -d $fulldest;
 
-            # Распакова .nuget
-            verbose_print("extracting $nugetfile");
-            my $archive = Archive::Zip->new();
-            $archive->read($nugetfile) == AZ_OK or error("error opening archive $nugetfile");
-            $archive->extractTree('', $fulldest) == AZ_OK or error("failed to extract $nugetfile");
+                # Распаковка .nuget
+                verbose_print("extracting $nugetfile");
+                my $archive = Archive::Zip->new();
+                $archive->read($nugetfile) == AZ_OK or error("error opening archive $nugetfile");
+                $archive->extractTree('', $fulldest) == AZ_OK or error("failed to extract $nugetfile");
 
-            my $fh;
-            # Создание .sha512
-            my $checksumfile = $fulldest . '/' . lc(basename($nugetfile)) . '.sha512';
-            verbose_print("generating $checksumfile");
+                # Создание .sha512
+                my $checksumfile = $fulldest . '/' . lc(basename($nugetfile)) . '.sha512';
+                verbose_print("generating $checksumfile");
 
-            open($fh, '>', $checksumfile) or error("failed to write to $checksumfile");
-            print {$fh} sha512_base64($nugetfile);
-            close($fh) or error("closing $checksumfile: $!");
+                open(my $fh, '>', $checksumfile) or error("failed to write to $checksumfile");
+                print {$fh} sha512_base64($nugetfile);
+                close($fh) or error("closing $checksumfile: $!");
 
-            # Создание .nupkg.metadata
-            my $metadatafile = "$fulldest/.nupkg.metadata";
-            verbose_print("generating $metadatafile");
+                # Создание .nupkg.metadata
+                my $metadatafile = "$fulldest/.nupkg.metadata";
+                verbose_print("generating $metadatafile");
 
-            my $checksum = sha256_base64($nugetfile);
+                my $checksum = sha256_base64($nugetfile);
 
-            open($fh, '>', $metadatafile) or error("failed to write to $metadatafile");
-            print {$fh} << "JSON";
+                open($fh, '>', $metadatafile) or error("failed to write to $metadatafile");
+                print {$fh} << "JSON";
 {
   "version": 2,
   "contentHash": "$checksum"
 }
 JSON
-            close($fh) or error("closing $metadatafile: $!");
+                close($fh) or error("closing $metadatafile: $!");
+            }
         }
-        close $fd;
     }
 }
     
@@ -162,6 +166,64 @@ sub clean_text {
     $text =~ s/^\s+|\s+$//g;
     return $text;
 }
+
+=head1 SYNOPSIS
+
+B<dh_installnuget> [S<I<debhelper options>>] [B<--nuget-path=>I<path>[,I<path>...]] [B<-n>]
+
+=head1 DESCRIPTION
+
+B<dh_installnuget> is a debhelper program that installs packed NuGet packages
+to a system-wide location.
+
+This command automatically unpacks B<.nupkg> files, parses package
+metadata in B<.nuspec> and installs them into the target directory.
+
+By default, packages are installed to F</usr/lib/mono/sdk/8.0.124/nuget/>.
+Use B<--nuget-path> to override the installation path(s).
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--nuget-path=>I<path>
+
+Set the base installation path for NuGet packages. Can be specified multiple
+times or multiple paths can be separated by commas.
+
+When this option is used, the default path is B<not> used.
+
+Default (when no --nuget-path specified): F</usr/lib/mono/sdk/8.0.124/nuget/>
+
+Examples:
+  --nuget-path=/usr/lib/nuget
+  --nuget-path=/usr/lib/nuget,/usr/lib/mono/nuget
+  --nuget-path=/usr/lib/nuget --nuget-path=/usr/lib/mono/nuget
+
+=item B<-n>, B<--no-scripts>
+
+Do not modify F<postinst>/F<postrm>/F<prerm> scripts nor add an
+activation trigger.
+
+=back
+
+=head1 FILES
+
+=over 4
+
+=item debian/I<package>.nuget
+
+Lists the NuGet packages to be installed per package. Each line in that file
+should be of the form C<I<path>>, where I<path> indicates where the
+NuGet package resides in the source tree.
+
+=back
+
+=head1 NOTES
+
+Note that this command is not idempotent. L<dh_prep(1)> should be
+called between invocations of this command. Otherwise, it may cause
+multiple instances of the same text to be added to maintainer scripts.
 
 =head1 SEE ALSO
 
