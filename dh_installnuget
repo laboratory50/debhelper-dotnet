@@ -2,7 +2,65 @@
 
 =head1 NAME
 
-dh_installcatalogs - install and register SGML Catalogs
+dh_installnuget - install NuGet packages
+
+=head1 SYNOPSIS
+
+B<dh_installnuget> [S<I<debhelper options>>] [B<--nuget-path=>I<path>]
+
+=head1 DESCRIPTION
+
+B<dh_installnuget> installs NuGet packages to system-wide locations.
+
+By default, packages are installed to F</usr/lib/nuget/>.
+Use B<--nuget-path> to specify a custom installation path.
+
+=head1 FILES
+
+=over 4
+
+=item debian/I<package>.nuget
+
+Lists the NuGet packages to be installed per package. Each line in that file
+should be of the form C<I<path>>, where I<path> indicates where the NuGet
+package resides in the source tree.
+
+=back
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--nuget-path=>I<path>
+
+Set the base installation path. Can be specified only once.
+When used, the default path is B<not> used.
+
+Default (when no --nuget-path specified): F</usr/lib/nuget/>
+
+Example:
+  --nuget-path=/usr/share/nuget
+
+=back
+
+=head1 NOTES
+
+Note that this command is not idempotent. L<dh_prep(1)> should be called
+between invocations of this command. Otherwise, it may cause multiple
+instances of the same text to be added to maintainer scripts.
+
+When using custom paths (especially F</usr/local>), be aware that this may
+violate Debian Policy and could cause issues with package management. Consider
+using standard paths like F</usr/share> or F</usr/lib> for official packages.
+
+=head1 SEE ALSO
+
+L<debhelper(7)>
+
+=head1 AUTHOR
+
+Наследов Дмитрий <dnasledov@lab50.net>
+Шлыков Василий <vash@lab50.net>
 
 =cut
 
@@ -14,136 +72,109 @@ use Archive::Zip qw(:ERROR_CODES);
 use XML::LibXML;
 use File::Basename;
 
-=head1 SYNOPSIS
+# =============================================================================
+# Путь по умолчанию
+# =============================================================================
+my $default_path = '/usr/lib/nuget';
 
-B<dh_installnuget> [S<I<debhelper options>>] [B<-n>]
+# =============================================================================
+# Инициализация
+# =============================================================================
+my $nuget_path;
+init(options => {
+    'nuget-path=s'  => \$nuget_path,
+});
 
-=head1 DESCRIPTION
+# Если путь не указан — используем путь по умолчанию
+$nuget_path = $default_path unless $nuget_path;
 
-B<dh_installcatalogs> is a debhelper program that installs packed NuGet package
-to system wide location.
+# Нормализация пути (убираем leading и trailing slash)
+$nuget_path =~ s/^\/+//;
+$nuget_path =~ s/\/+$//;
 
-This command automatically unpacks B<.nuget> file, parses package
-metadata in B<.nuspec> and installs it into B</usr/lib/nuget>.
+verbose_print("Installation path: $nuget_path") if $dh{V};
 
-=head1 FILES
-
-=over 4
-
-=item debian/I<package>.nuget
-
-Lists the NuGet packages to be installed per package. Each line in that file
-should be of the form C<I<path>>, where I<path> indicates where the
-NuGet package resides in the source tree.
-
-=back
-
-=head1 OPTIONS
-
-=over 4
-
-=item B<-n>, B<--no-scripts>
-
-Do not modify F<postinst>/F<postrm>/F<prerm> scripts nor add an
-activation trigger.
-
-=back
-
-=head1 NOTES
-
-Note that this command is not idempotent. L<dh_prep(1)> should be
-called between invocations of this command. Otherwise, it may cause
-multiple instances of the same text to be added to maintainer scripts.
-
-=cut
-
-init();
-
+# =============================================================================
+# Основная логика
+# =============================================================================
 foreach my $package (@{$dh{DOPACKAGES}}) {
     my $nugetlistfile = pkgfile(
         {
-                'named'                            => 1,
-                'support-architecture-restriction' => 0
+            'named'                            => 1,
+            'support-architecture-restriction' => 0
         },
         $package,
         'nuget'
     );
 
-    if ($nugetlistfile) {
-        # Прочитать пути к архивам
-        open(my $fd, '<:encoding(utf8)', $nugetlistfile)
-            or error("open $nugetlistfile failed: $!");
+    next unless $nugetlistfile;
 
-        while (my $nugetfile = <$fd>) {
-            chomp $nugetfile;
-            next if $nugetfile =~ /^\s*($|#)/;  # Пропустить пустые строки и комментарии
-            $nugetfile =~ s/^\s+|\s+$//g;
+    open(my $fd, '<:encoding(utf8)', $nugetlistfile)
+        or error("open $nugetlistfile failed: $!");
 
-            # Проверить существование архива
-            error("package $nugetfile not exists") unless -f $nugetfile;
+    my @nugetfiles;
+    while (my $nugetfile = <$fd>) {
+        chomp $nugetfile;
+        next if $nugetfile =~ /^\s*($|#)/;
+        $nugetfile =~ s/^\s+|\s+$//g;
+        push @nugetfiles, $nugetfile if $nugetfile ne '';
+    }
+    close $fd;
 
-            print("\tInstalling $nugetfile\n");
+    foreach my $nugetfile (@nugetfiles) {
+        error("package $nugetfile not exists") unless -f $nugetfile;
 
-            # Извлечь имя пакета и версию
-            my ($id, $version) = get_nuget_metadata($nugetfile, $package);
-            verbose_print("$nugetfile $id ($version)") if $dh{V};
-            
-            # Целевой путь: debian/<пакет>/usr/lib/nuget/<id>/<version>/
-            my $tmpdir = tmpdir($package);
-            my $fulldest = "$tmpdir/usr/lib/nuget/" . lc($id) . "/" . lc($version);
+        print("\tInstalling $nugetfile to $nuget_path\n");
 
-            install_dir($fulldest) unless -d $fulldest;
+        my ($id, $version) = get_nuget_metadata($nugetfile, $package);
+        verbose_print("$nugetfile $id ($version)") if $dh{V};
+        
+        my $tmpdir = tmpdir($package);
+        # Добавлен разделитель / между $tmpdir и $nuget_path
+        my $fulldest = "$tmpdir/$nuget_path/" . lc($id) . "/" . lc($version);
 
-            # Распакова .nuget
-            verbose_print("extracting $nugetfile");
-            my $archive = Archive::Zip->new();
-            $archive->read($nugetfile) == AZ_OK or error("error opening archive $nugetfile");
-            $archive->extractTree('', $fulldest) == AZ_OK or error("failed to extract $nugetfile");
+        install_dir($fulldest) unless -d $fulldest;
 
-            my $fh;
-            # Создание .sha512
-            my $checksumfile = $fulldest . '/' . lc(basename($nugetfile)) . '.sha512';
-            verbose_print("generating $checksumfile");
+        verbose_print("extracting $nugetfile");
+        my $archive = Archive::Zip->new();
+        $archive->read($nugetfile) == AZ_OK or error("error opening archive $nugetfile");
+        $archive->extractTree('', $fulldest) == AZ_OK or error("failed to extract $nugetfile");
 
-            open($fh, '>', $checksumfile) or error("failed to write to $checksumfile");
-            print {$fh} sha512_base64($nugetfile);
-            close($fh) or error("closing $checksumfile: $!");
+        my $checksumfile = $fulldest . '/' . lc(basename($nugetfile)) . '.sha512';
+        verbose_print("generating $checksumfile");
+        open(my $fh, '>', $checksumfile) or error("failed to write to $checksumfile");
+        print {$fh} sha512_base64($nugetfile);
+        close($fh) or error("closing $checksumfile: $!");
 
-            # Создание .nupkg.metadata
-            my $metadatafile = "$fulldest/.nupkg.metadata";
-            verbose_print("generating $metadatafile");
-
-            my $checksum = sha256_base64($nugetfile);
-
-            open($fh, '>', $metadatafile) or error("failed to write to $metadatafile");
-            print {$fh} << "JSON";
+        my $metadatafile = "$fulldest/.nupkg.metadata";
+        verbose_print("generating $metadatafile");
+        my $checksum = sha256_base64($nugetfile);
+        open($fh, '>', $metadatafile) or error("failed to write to $metadatafile");
+        print {$fh} << "JSON";
 {
   "version": 2,
   "contentHash": "$checksum"
 }
 JSON
-            close($fh) or error("closing $metadatafile: $!");
-        }
-        close $fd;
+        close($fh) or error("closing $metadatafile: $!");
     }
 }
-    
-# Извлечь имя пакета и версию из архива
+
+# =============================================================================
+# Вспомогательные функции
+# =============================================================================
 sub get_nuget_metadata {
     my ($nugetfile, $package) = @_;
 
     my $zip = Archive::Zip->new();
     $zip->read($nugetfile) == AZ_OK or error("$nugetfile read failed: $!");
 
-    # Найти .nuspec в корне архива
     my ($nuspec) = grep { m{^[^/]+\.nuspec$}i } $zip->memberNames();
     if ($nuspec) {
-        # Распарсить XML
         my $content = $zip->memberNamed($nuspec)->contents();
         my $doc = XML::LibXML->new()->parse_string($content);
         my $root = $doc->documentElement();
 
-        # Извлечь <id> и <version> из <metadata>, игнорируя пространства имён
         my ($id_node) = $root->findnodes('.//*[local-name()="metadata"]/*[local-name()="id"]');
         my ($ver_node) = $root->findnodes('.//*[local-name()="metadata"]/*[local-name()="version"]');
 
@@ -156,20 +187,8 @@ sub get_nuget_metadata {
     }
 }
 
-# Очистить текст от пробелов по краям
 sub clean_text {
     my $text = shift;
     $text =~ s/^\s+|\s+$//g;
     return $text;
 }
-
-=head1 SEE ALSO
-
-L<debhelper(7)>
-
-=head1 AUTHOR
-
-Наследов Дмитрий <dnasledov@lab50.net>
-Шлыков Василий <vash@lab50.net>
-
-=cut
