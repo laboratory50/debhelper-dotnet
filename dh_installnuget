@@ -6,15 +6,14 @@ dh_installnuget - install NuGet packages
 
 =head1 SYNOPSIS
 
-B<dh_installnuget> [S<I<debhelper options>>] [B<--nuget-path=>I<path>] [B<-n>]
+B<dh_installnuget> [S<I<debhelper options>>] [B<--nuget-path=>I<path>]
 
 =head1 DESCRIPTION
 
 B<dh_installnuget> installs NuGet packages to system-wide locations.
 
-By default, packages are installed to F</usr/lib/mono/sdk/8.0.124/nuget/>.
-Set B<DH_NUGET_SDK_VERSION> to change the SDK version, or use B<--nuget-path>
-to specify a custom installation path.
+By default, packages are installed to F</usr/lib/nuget/>.
+Use B<--nuget-path> to specify a custom installation path.
 
 =head1 FILES
 
@@ -34,29 +33,13 @@ package resides in the source tree.
 
 =item B<--nuget-path=>I<path>
 
-Set the base installation path. Can be specified multiple times.
+Set the base installation path. Can be specified only once.
 When used, the default path is B<not> used.
 
-Default (when no --nuget-path specified): F</usr/lib/mono/sdk/8.0.124/nuget/>
+Default (when no --nuget-path specified): F</usr/lib/nuget/>
 
-Examples:
-  --nuget-path=/usr/lib/nuget
-  --nuget-path=/usr/lib/nuget --nuget-path=/usr/lib/mono/nuget
-
-=item B<-n>, B<--no-scripts>
-
-Do not modify F<postinst>/F<postrm>/F<prerm> scripts nor add an
-activation trigger.
-
-=back
-
-=head1 ENVIRONMENT
-
-=over 4
-
-=item B<DH_NUGET_SDK_VERSION>
-
-Set the Mono SDK version. Default: C<8.0.124>
+Example:
+  --nuget-path=/usr/share/nuget
 
 =back
 
@@ -90,28 +73,26 @@ use XML::LibXML;
 use File::Basename;
 
 # =============================================================================
-# Получение версии SDK (только из переменной окружения)
+# Путь по умолчанию
 # =============================================================================
-my $sdk_version = $ENV{DH_NUGET_SDK_VERSION} || '8.0.124';
-my $default_path = "/usr/lib/mono/sdk/$sdk_version/nuget";
+my $default_path = '/usr/lib/nuget';
 
 # =============================================================================
 # Инициализация
 # =============================================================================
-my @nuget_paths;
+my $nuget_path;
 init(options => {
-    'nuget-path=s@' => \@nuget_paths,
-    'no-scripts|n'  => \$dh{NO_SCRIPTS},
+    'nuget-path=s'  => \$nuget_path,
 });
 
-# Если пути не указаны — используем путь по умолчанию
-@nuget_paths = ($default_path) unless @nuget_paths;
+# Если путь не указан — используем путь по умолчанию
+$nuget_path = $default_path unless $nuget_path;
 
-# Нормализация путей (убираем trailing slash)
-s/\/+$// foreach @nuget_paths;
+# Нормализация пути (убираем leading и trailing slash)
+$nuget_path =~ s/^\/+//;
+$nuget_path =~ s/\/+$//;
 
-verbose_print("SDK version: $sdk_version") if $dh{V};
-verbose_print("Paths: @nuget_paths") if $dh{V};
+verbose_print("Installation path: $nuget_path") if $dh{V};
 
 # =============================================================================
 # Основная логика
@@ -135,48 +116,47 @@ foreach my $package (@{$dh{DOPACKAGES}}) {
     while (my $nugetfile = <$fd>) {
         chomp $nugetfile;
         next if $nugetfile =~ /^\s*($|#)/;
-        $nugetfile =~ s/^\s+|\s+$//g;  # Пропустить пустые строки и комментарии
+        $nugetfile =~ s/^\s+|\s+$//g;
         push @nugetfiles, $nugetfile if $nugetfile ne '';
     }
     close $fd;
 
-    foreach my $basepath (@nuget_paths) {
-        foreach my $nugetfile (@nugetfiles) {
-            error("package $nugetfile not exists") unless -f $nugetfile;
+    foreach my $nugetfile (@nugetfiles) {
+        error("package $nugetfile not exists") unless -f $nugetfile;
 
-            print("\tInstalling $nugetfile to $basepath\n");
+        print("\tInstalling $nugetfile to $nuget_path\n");
 
-            my ($id, $version) = get_nuget_metadata($nugetfile, $package);
-            verbose_print("$nugetfile $id ($version)") if $dh{V};
-            
-            my $tmpdir = tmpdir($package);
-            my $fulldest = "$tmpdir$basepath/" . lc($id) . "/" . lc($version);
+        my ($id, $version) = get_nuget_metadata($nugetfile, $package);
+        verbose_print("$nugetfile $id ($version)") if $dh{V};
+        
+        my $tmpdir = tmpdir($package);
+        # Добавлен разделитель / между $tmpdir и $nuget_path
+        my $fulldest = "$tmpdir/$nuget_path/" . lc($id) . "/" . lc($version);
 
-            install_dir($fulldest) unless -d $fulldest;
+        install_dir($fulldest) unless -d $fulldest;
 
-            verbose_print("extracting $nugetfile");
-            my $archive = Archive::Zip->new();
-            $archive->read($nugetfile) == AZ_OK or error("error opening archive $nugetfile");
-            $archive->extractTree('', $fulldest) == AZ_OK or error("failed to extract $nugetfile");
+        verbose_print("extracting $nugetfile");
+        my $archive = Archive::Zip->new();
+        $archive->read($nugetfile) == AZ_OK or error("error opening archive $nugetfile");
+        $archive->extractTree('', $fulldest) == AZ_OK or error("failed to extract $nugetfile");
 
-            my $checksumfile = $fulldest . '/' . lc(basename($nugetfile)) . '.sha512';
-            verbose_print("generating $checksumfile");
-            open(my $fh, '>', $checksumfile) or error("failed to write to $checksumfile");
-            print {$fh} sha512_base64($nugetfile);
-            close($fh) or error("closing $checksumfile: $!");
+        my $checksumfile = $fulldest . '/' . lc(basename($nugetfile)) . '.sha512';
+        verbose_print("generating $checksumfile");
+        open(my $fh, '>', $checksumfile) or error("failed to write to $checksumfile");
+        print {$fh} sha512_base64($nugetfile);
+        close($fh) or error("closing $checksumfile: $!");
 
-            my $metadatafile = "$fulldest/.nupkg.metadata";
-            verbose_print("generating $metadatafile");
-            my $checksum = sha256_base64($nugetfile);
-            open($fh, '>', $metadatafile) or error("failed to write to $metadatafile");
-            print {$fh} << "JSON";
+        my $metadatafile = "$fulldest/.nupkg.metadata";
+        verbose_print("generating $metadatafile");
+        my $checksum = sha256_base64($nugetfile);
+        open($fh, '>', $metadatafile) or error("failed to write to $metadatafile");
+        print {$fh} << "JSON";
 {
   "version": 2,
   "contentHash": "$checksum"
 }
 JSON
-            close($fh) or error("closing $metadatafile: $!");
-        }
+        close($fh) or error("closing $metadatafile: $!");
     }
 }
 
