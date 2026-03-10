@@ -81,11 +81,11 @@ my $default_path = '/usr/lib/nuget';
 # Инициализация
 # =============================================================================
 my $nuget_path;
+
 init(options => {
     'nuget-path=s'  => \$nuget_path,
 });
 
-# Если путь не указан — используем путь по умолчанию
 $nuget_path = $default_path unless $nuget_path;
 
 # Нормализация пути (убираем leading и trailing slash)
@@ -112,19 +112,13 @@ foreach my $package (@{$dh{DOPACKAGES}}) {
     open(my $fd, '<:encoding(utf8)', $nugetlistfile)
         or error("open $nugetlistfile failed: $!");
 
-    my @nugetfiles;
     while (my $nugetfile = <$fd>) {
         chomp $nugetfile;
         next if $nugetfile =~ /^\s*($|#)/;
-        $nugetfile =~ s/^\s+|\s+$//g;
-        push @nugetfiles, $nugetfile if $nugetfile ne '';
-    }
-    close $fd;
 
-    foreach my $nugetfile (@nugetfiles) {
         error("package $nugetfile not exists") unless -f $nugetfile;
 
-        print("\tInstalling $nugetfile to $nuget_path\n");
+        print("\tInstalling $nugetfile\n");
 
         my ($id, $version) = get_nuget_metadata($nugetfile, $package);
         verbose_print("$nugetfile $id ($version)") if $dh{V};
@@ -158,6 +152,7 @@ foreach my $package (@{$dh{DOPACKAGES}}) {
 JSON
         close($fh) or error("closing $metadatafile: $!");
     }
+    close $fd;
 }
 
 # =============================================================================
