@@ -4,7 +4,7 @@
 # Copyright: © 2022 Laboratory 50
 # License: GPL-3+
 
-package Debian::Debhelper::Buildsystem::dotnet;
+package Debian::Debhelper::Buildsystem::arcade;
 
 use strict;
 use warnings;
