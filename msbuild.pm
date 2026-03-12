@@ -11,6 +11,7 @@ use warnings;
 use JSON;
 use File::Basename;
 use File::Find::Rule qw/ find rule /;
+use Data::Dumper;
 use Debian::Debhelper::Dh_Lib qw(%dh error verbose_print restore_file_on_clean);
 use parent qw(Debian::Debhelper::Buildsystem);
 
@@ -65,25 +66,38 @@ sub check_auto_buildable {
 sub new {
         my $class=shift;
         my $this=$class->SUPER::new(@_);
+        my %projects;
+
         $this->prefer_out_of_source_building(@_);
 
         if ($ENV{'NETBUILD_BUILDFILE'}) {
                 my $buildfile = $ENV{'NETBUILD_BUILDFILE'};
                 if (-e $this->get_sourcepath($buildfile)) {
-                        $this->{buildfile} = ($buildfile);
+                        $this->{buildfiles} = ($buildfile);
                 }
                 else {
                         error("$buildfile not found");
                 }
         }
 
-#        my @solutions=glob($this->get_sourcepath('*.sln'));
-#
-#        if (@solutions > 1) {
-#                error("Multiple .sln files");
-#        }
-#        elsif (@solutions > 0) {
-#        }
+        if ($ENV{'NETBUILD_TARGETS'}) {
+                my @solutions=glob($this->get_sourcepath('*.sln'));
+
+                if (@solutions > 1) {
+                        error("Multiple .sln files");
+                }
+                elsif (@solutions > 0) {
+                        %projects = get_sln_projects($solutions[0]);
+                        #print "Projects:\n" . Dumper(\%projects);
+                        my @targets = split /\s+/, $ENV{'NETBUILD_TARGETS'} =~ s/,/ /r;
+
+                        foreach my $target (@targets) {
+                                if (exists $projects{$target}) {
+                                        push @{$this->{buildfiles}}, $projects{$target};
+                                }
+                        }
+                }
+        }
 
 #        my @projects=glob($this->get_sourcepath('*.cproj'));
 #
@@ -93,50 +107,72 @@ sub new {
 #        elsif (@projects > 0) {
 #        }
 
-        if ($ENV{'NETBUILD_TARGETS'}) {
-                $this->{targets} = $ENV{'NETBUILD_TARGETS'} =~ s/,/ /r;
-        }
-
         return $this;
 }
 
 sub configure {
         my $this=shift;
-        foreach my $command ($this->msbuild_args('restore', @_)) {
+        foreach my $command ($this->msbuild_commands('restore', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
 }
 
 sub clean {
         my $this=shift;
-        foreach my $command ($this->msbuild_args('clean', @_)) {
+        foreach my $command ($this->msbuild_commands('clean', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
+
+        if ($this->{buildfiles}) {
+                foreach my $buildfile (@{$this->{buildfiles}}) {
+                        $this->doit_in_sourcedir('rm', '-rf', get_intermediate_outputpath($buildfile));
+                        $this->doit_in_sourcedir('rm', '-rf', get_outputpath($buildfile));
+                }
+        }
 }
 
 sub build {
         my $this=shift;
-        foreach my $command ($this->msbuild_args('build', @_)) {
+        foreach my $command ($this->msbuild_commands('build', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
 }
 
 sub test {
-        foreach my $command ($this->msbuild_args('test', @_)) {
+        my $this=shift;
+        foreach my $command ($this->msbuild_commands('test', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
 }
 
-sub msbuild_args {
+sub msbuild_commands {
         my $this = shift;
-        my $step = shift;
-        my @options = @_;
         my @result;
 
-        my $dir = $this->get_sourcedir();
+        if ($this->{buildfiles}) {
+                foreach my $buildfile (@{$this->{buildfiles}}) {
+                        push @result, $this->msbuild_command($buildfile, @_);
+                }
+        }
+        else {
+                push @result, $this->msbuild_command(undef, @_);
+        }
 
-        if ($this->{buildfile}) {
-                push @options, $this->{buildfile};
+        return @result;
+}
+
+sub msbuild_command {
+        my $this = shift;
+        my $buildfile = shift;
+        my $step = shift;
+        my @options = @_;
+
+        #my $dir = $this->get_sourcedir();
+
+        print ("\t$step $buildfile\n");
+
+        if ($buildfile) {
+                push @options, $buildfile;
         }
 
         if ($step eq 'build' or $step eq 'test') {
@@ -149,9 +185,32 @@ sub msbuild_args {
                 }
         }
 
-        push @result, ['dotnet', $step, @options];
+        return ['dotnet', $step, @options];
+}
 
-        return @result;
+sub get_sln_projects {
+        my ($slnfile) = shift;
+        my %projects;
+
+        open my $fh, '<', $slnfile or error("Cannot open $slnfile: $!");
+
+        while (my $line = <$fh>) {
+                if ($line =~ /^Project\("\{[^}]+\}"\)\s*=\s*"([^"]+)",\s*"([^"]+)"/) {
+                        my ($name, $path) = ($1, $2);
+                        $projects{$name} = $path =~ s/\\/\//gr;
+                }
+        }
+
+        close $fh;
+        return %projects;
+}
+
+sub get_intermediate_outputpath {
+        return dirname(shift) . '/obj';
+}
+
+sub get_outputpath {
+        return dirname(shift) . '/bin';
 }
 
 1
