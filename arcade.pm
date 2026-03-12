@@ -49,7 +49,6 @@ sub get_sdk_version {
 
 sub check_auto_buildable {
         my $this=shift;
-        my ($step)=@_;
 
         return (-e $this->get_sourcepath("eng/common/build.sh")) ? 1 : 0;
 }

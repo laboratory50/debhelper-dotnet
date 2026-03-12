@@ -54,13 +54,44 @@ sub check_auto_buildable {
         my $this=shift;
         my ($step)=@_;
 
-        return (-e $this->get_sourcepath("*.sln") || -e $this->get_sourcepath("*.cproj")) ? 1 : 0;
+        if ($ENV{'NETBUILD_BUILDFILE'}) {
+                return (-e $this->get_sourcepath($ENV{'NETBUILD_BUILDFILE'})) ? 1 : 0;
+        }
+        else {
+                return (-e $this->get_sourcepath('*.sln') || -e $this->get_sourcepath('*.cproj')) ? 1 : 0;
+        }
 }
 
 sub new {
         my $class=shift;
         my $this=$class->SUPER::new(@_);
         $this->prefer_out_of_source_building(@_);
+
+        if ($ENV{'NETBUILD_BUILDFILE'}) {
+                my $buildfile = $ENV{'NETBUILD_BUILDFILE'};
+                if (-e $this->get_sourcepath($buildfile)) {
+                        $this->{buildfile} = ($buildfile);
+                }
+                else {
+                        error("$buildfile not found");
+                }
+        }
+
+#        my @solutions=glob($this->get_sourcepath('*.sln'));
+#
+#        if (@solutions > 1) {
+#                error("Multiple .sln files");
+#        }
+#        elsif (@solutions > 0) {
+#        }
+
+#        my @projects=glob($this->get_sourcepath('*.cproj'));
+#
+#        if (@projects > 1) {
+#                error("Multiple .cproj files");
+#        }
+#        elsif (@projects > 0) {
+#        }
 
         if ($ENV{'NETBUILD_TARGETS'}) {
                 $this->{targets} = $ENV{'NETBUILD_TARGETS'} =~ s/,/ /r;
@@ -71,7 +102,9 @@ sub new {
 
 sub configure {
         my $this=shift;
-        $this->doit_in_sourcedir(@$this->msbuild_args('restore', @_));
+        foreach my $command ($this->msbuild_args('restore', @_)) {
+                $this->doit_in_sourcedir(@$command);
+	}
 }
 
 sub clean {
@@ -83,13 +116,15 @@ sub clean {
 
 sub build {
         my $this=shift;
-        $this->doit_in_sourcedir($this->msbuild_args('build', @_));
+        foreach my $command ($this->msbuild_args('build', @_)) {
+                $this->doit_in_sourcedir(@$command);
+	}
 }
 
 sub test {
-#        my $this=shift;
-#        my @args = qw/--test/;
-#        $this->doit_in_sourcedir("eng/common/build.sh", @args, @_);
+        foreach my $command ($this->msbuild_args('test', @_)) {
+                $this->doit_in_sourcedir(@$command);
+	}
 }
 
 sub msbuild_args {
@@ -100,7 +135,13 @@ sub msbuild_args {
 
         my $dir = $this->get_sourcedir();
 
-        push @options, '-c', 'Release';
+        if ($this->{buildfile}) {
+                push @options, $this->{buildfile};
+        }
+
+        if ($step eq 'build' or $step eq 'test') {
+                push @options, '-c', 'Release';
+        }
 
         if ($this->{targets}) {
                 foreach my $target (split ' ', $this->{targets}) {
