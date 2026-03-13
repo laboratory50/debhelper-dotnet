@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+=encoding UTF-8
+
 =head1 NAME
 
 dh_installnuget - install NuGet packages
@@ -19,7 +21,7 @@ Use B<--nuget-path> to specify a custom installation path.
 
 =over 4
 
-=item debian/I<package>.nuget
+=item debian/I<package>.nuget debian/nuget
 
 Lists the NuGet packages to be installed per package. Each line in that file
 should be of the form C<I<path>>, where I<path> indicates where the NuGet
@@ -57,9 +59,12 @@ using standard paths like F</usr/share> or F</usr/lib> for official packages.
 
 L<debhelper(7)>
 
-=head1 AUTHOR
+This program is not a part of debhelper.
+
+=head1 AUTHORS
 
 Наследов Дмитрий <dnasledov@lab50.net>
+
 Шлыков Василий <vash@lab50.net>
 
 =cut

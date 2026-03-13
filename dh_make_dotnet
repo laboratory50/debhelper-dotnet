@@ -1,0 +1,234 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import os
+import re
+import pwd
+import getpass
+import subprocess
+import tarfile
+import tempfile
+import urllib.request
+import urllib.error
+import xml.etree.ElementTree as ET
+from datetime import datetime, UTC
+
+
+GITHUB_API = "https://api.github.com"
+
+
+SEMVER_RE = re.compile(
+    r'^(0|[1-9]\d*)\.'          # major
+    r'(0|[1-9]\d*)\.'           # minor
+    r'(0|[1-9]\d*)'             # patch
+    r'(?:-([0-9A-Za-z-\.]+))?'  # prerelease
+    r'(?:\+([0-9A-Za-z-\.]+))?$' # build
+)
+
+
+def username():
+    fullname = os.getenv('DEBFULLNAME')
+    if not fullname:
+        gecos = pwd.getpwnam(getpass.getuser())
+        fullname = gecos.pw_gecos.split(',', 1)[0]
+    return fullname
+
+
+def email():
+    if 'DEBEMAIL' in os.environ:
+        addr = os.getenv('DEBEMAIL')
+    elif Path('/etc/mailname').exists():
+        with open('/etc/mailname', 'r') as file:
+            addr = getpass.getuser() + "@" + file.readline().strip()
+    else:
+        addr = getpass.getuser() + "@" + gethostname()
+    return addr
+
+
+def http_get(url):
+    req = urllib.request.Request(url)
+    req.add_header("Accept", "application/vnd.github+json")
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read().decode())
+
+
+def parse_repo(url):
+    parts = url.rstrip("/").split("/")
+    return parts[-2], parts[-1]
+
+
+def repo_info(owner, repo, url):
+    data = http_get(f"{GITHUB_API}/repos/{owner}/{repo}")
+    return {
+        "description": data.get("description") or "No description",
+        "homepage": data.get("homepage") or f"https://github.com/{owner}/{repo}",
+        "license": (data.get("license") or {}).get("spdx_id", "unknown"),
+        "upstream": url
+    }
+
+
+def find_release(owner, repo, version):
+    try:
+        data = http_get(f"{GITHUB_API}/repos/{owner}/{repo}/releases/tags/{version}")
+        return data, True
+    except urllib.error.HTTPError:
+        return None, False
+
+
+def find_tag(owner, repo, version):
+    tags = http_get(f"{GITHUB_API}/repos/{owner}/{repo}/tags")
+    for t in tags:
+        if t["name"] == version:
+            return t
+        if t["name"] == f"v{version}":
+            return t
+    return None
+
+
+def create_watch(owner, repo, tag, is_release):
+    if is_release:
+        content = f"""version=4
+opts=filenamemangle=s/.+\\/v?([\\d\\.]+)\\.tar\\.gz/{repo}-$1\\.tar\\.gz/,\\
+compression=xz,repack \\
+https://api.github.com/repos/{owner}/{repo}/releases .*/tarball/v?(\\d[\\d\\.]*) 
+"""
+    else:
+        content = f"""version=4
+opts=repack,filenamemangle=s%.*/@ANY_VERSION@%@PACKAGE@-$1.tar.gz%,\\
+downloadurlmangle=s%({GITHUB_API}/repos/[^/]+/[^/]+)/git/refs/%$1/tarball/refs/%g,\\
+searchmode=plain \\
+  {GITHUB_API}/repos/{owner}/{repo}/git/matching-refs/tags/ \\
+  {GITHUB_API}/repos/[^/]+/[^/]+/git/refs/tags/@ANY_VERSION@
+"""
+    with open("debian/watch", "w") as f:
+        f.write(content)
+
+
+def create_changelog(pkg, version):
+    now = datetime.now(UTC).strftime("%a, %d %b %Y %H:%M:%S +0000")
+    text = f"""{pkg} ({version}-1) unstable; urgency=medium
+
+  * Initial release.
+
+ -- {username()} <{email()}>  {now}
+"""
+    with open("debian/changelog", "w") as f:
+        f.write(text)
+
+
+def create_copyright(repo, pkg):
+    text = f"""Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: {pkg}
+Source: {repo['upstream']}
+Files-Excluded: .github
+
+Files: *
+Copyright: unknown
+License: {repo['license']}
+
+Files: debian/*
+Copyright: © {username()}, {datetime.now().year}
+License: GPL-3.0+
+"""
+    with open("debian/copyright", "w") as f:
+        f.write(text)
+
+
+def create_debian(owner, repo, tag, version, is_release, repo_info):
+    print("Сопровождающий:", username());
+    print("Электронная почта:", email());
+
+    os.makedirs("debian/source", exist_ok=True)
+    pkg = repo.lower()
+    description = repo_info["description"]
+    short_version = get_short_version(version)
+
+    print("Название пакета:", pkg);
+    print("Версия пакета:", f"{version}-1");
+    print("Короткая версия:", short_version);
+
+    # control
+    control = f"""Source: {pkg}
+Section: dotnet
+Priority: optional
+Maintainer: {username()} <{email()}>
+Build-Depends: debhelper-compat (= 13), mono-sdk-nuget-8.0, dh-sequence-dotnet
+Standards-Version: 4.6.2
+Homepage: {repo_info["homepage"]}
+
+Package: lib{pkg}-dotnet-{short_version}
+Architecture: all
+Provides: lib{pkg}-dotnet
+Depends: ${{misc:Depends}}, ${{shlibs:Depends}}, mono-runtime-8.0
+Description: {description}
+
+Package: lib{pkg}-dotnet-{short_version}-dev
+Architecture: all
+Provides: lib{pkg}-dotnet-dev
+Depends: lib{pkg}-dotnet-{short_version} (= ${{version}}),
+ ${{misc:Depends}},
+ ${{shlibs:Depends}},
+ mono-runtime-8.0
+Description: {description} (Nuget)
+"""
+    with open("debian/control", "w") as f:
+        f.write(control)
+
+    create_watch(owner, repo, tag, is_release)
+    create_changelog(pkg, version)
+    create_copyright(repo_info, pkg)
+
+    with open("debian/source/format", "w") as f:
+        f.write("3.0 (quilt)\n")
+
+    rules = """#!/usr/bin/make -f
+
+#DH_VERBOSE = 1 
+
+#NETBUILD_BUILDFILE =
+
+#NETBUILD_TARGETS =
+
+%:
+\tdh $@
+"""
+    with open("debian/rules", "w") as f:
+        f.write(rules)
+    os.chmod("debian/rules", 0o755)
+
+
+def get_short_version(version):
+    m = SEMVER_RE.match(version)
+    if not m:
+        return version
+    major, minor = m.group(1), m.group(2)
+    return f"{major}.{minor}"
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("repo")
+    parser.add_argument("version")
+    args = parser.parse_args()
+
+    owner, repo = parse_repo(args.repo)
+    info = repo_info(owner, repo, args.repo)
+
+    release_data, is_release = find_release(owner, repo, args.version)
+    if release_data:
+        tag = release_data["tag_name"]
+    else:
+        tag_data = find_tag(owner, repo, args.version)
+        if not tag_data:
+            raise RuntimeError("tag or release not found")
+        tag = tag_data["name"]
+        is_release = False
+
+    create_debian(owner, repo, tag, args.version, is_release, info)
+    print("debian/ directory created")
+
+
+if __name__ == "__main__":
+    main()
+

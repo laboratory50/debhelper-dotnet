@@ -1,6 +1,13 @@
+dh-dotnet-lab50 (4) testing; urgency=medium
+
+  * Начата реализация dotnet.pm.
+  * Добавлена утилита создания пакетов dh_make_dotnet.
+
+ -- Шлыков Василий <vash@lab50.net>  Fri, 13 Mar 2026 09:31:42 +0300
+
 dh-dotnet-lab50 (3) testing; urgency=medium
 
-  * Добавлен скрипт dh_installnuget
+  * Добавлен скрипт dh_installnuget.
 
  -- Шлыков Василий <vash@lab50.net>  Thu, 05 Feb 2026 11:00:51 +0300
 
