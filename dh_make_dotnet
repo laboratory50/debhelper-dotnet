@@ -189,7 +189,7 @@ Description: {description} (Nuget)
 
 #NETBUILD_BUILDFILE =
 
-#NETBUILD_TARGETS =
+export NETBUILD_TARGETS =
 
 %:
 \tdh $@

@@ -7,7 +7,7 @@ debhelper/dh_installnuget.1: debhelper/dh_installnuget
 all: debhelper/dh_installnuget.1
 
 clean:
-	rm debhelper/dh_installnuget.1
+	rm -f debhelper/dh_installnuget.1
 
 install:
 	$(INSTALL) -d $(DESTDIR)/$(DHLIBPATH)/Buildsystem
