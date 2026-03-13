@@ -187,9 +187,9 @@ Description: {description} (Nuget)
 
 #DH_VERBOSE = 1 
 
-#NETBUILD_BUILDFILE =
+#export NETBUILD_BUILDFILE =
 
-#NETBUILD_TARGETS =
+#export NETBUILD_TARGETS =
 
 %:
 \tdh $@
