@@ -1,0 +1,3 @@
+usr/bin/nh_patchproj                           usr/bin/
+usr/share/dotnet/nh_patchproj/*                usr/share/dotnet/nh_patchproj/
+usr/share/nh_patchproj/Resources/readme.md     usr/share/nh_patchproj/Resources/
