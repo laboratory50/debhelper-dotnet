@@ -14,7 +14,7 @@ public class PackageRemover
         int removed = 0;
         
         // Отладка
-        _logger.Verbose($"Всего элементов в проекте: {project.Items.Count}");
+        _logger.Verbose($"All elements count: {project.Items.Count}");
         foreach (var item in project.Items)
         {
             _logger.Verbose($"  - {item.ItemType}: {item.Include}");
@@ -25,14 +25,14 @@ public class PackageRemover
             .Where(i => i.ItemType == "PackageReference")
             .ToList();
         
-        _logger.Verbose($"Найдено PackageReference: {packages.Count}");
+        _logger.Verbose($"Founded PackageReference: {packages.Count}");
         
         foreach (var package in packages)
         {
-            _logger.Verbose($"  Проверка: {package.Include}");
+            _logger.Verbose($"  Check: {package.Include}");
             
             bool shouldRemove = false;
-            string reason = "по имени";
+            string reason = "for name";
 
             if (packageNames.Contains(package.Include, StringComparer.OrdinalIgnoreCase))
             {
@@ -45,7 +45,7 @@ public class PackageRemover
                     if (Regex.IsMatch(package.Include, regex, RegexOptions.IgnoreCase))
                     {
                         shouldRemove = true;
-                        reason = $"по маске {regex}";
+                        reason = $"for mask {regex}";
                         break;
                     }
                 }
@@ -65,12 +65,12 @@ public class PackageRemover
                 }
                 else
                 {
-                    _logger.Error($"   [✗] Не удалось удалить {package.Include}: родитель не найден");
+                    _logger.Error($"   Error {package.Include}: parent not found");
                 }
             }
         }
         
-        _logger.Verbose($"Удалено пакетов: {removed}");
+        _logger.Verbose($"Deleted: {removed}");
         return removed;
     }
 }

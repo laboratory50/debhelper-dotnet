@@ -11,7 +11,7 @@ public static class RestoreCommand
         var path = ArgParser.GetOption(args, "path") ?? ArgParser.GetOption(args, "p");
         if (string.IsNullOrEmpty(path))
         {
-            Console.Error.WriteLine("❌ Ошибка: параметр --path обязателен");
+            Console.Error.WriteLine("Error: --path parameter is required");
             return ExitCodes.CriticalError;
         }
 
@@ -33,12 +33,12 @@ public static class RestoreCommand
 
         try
         {
-            logger.Info($"🔧 DotNetProjectHelper v1.0.0 — Восстановление");
-            logger.Info($"📁 Путь: {options.Path}");
+            logger.Info("DotNetProjectHelper v1.0.0 - Restore");
+            logger.Info("Path: " + options.Path);
 
             if (!Directory.Exists(options.Path))
             {
-                logger.Error($"Путь не найден: {options.Path}");
+                logger.Error("Path not found: " + options.Path);
                 return ExitCodes.CriticalError;
             }
 
@@ -47,24 +47,24 @@ public static class RestoreCommand
 
             if (restored == 0)
             {
-                logger.Warning("Бэкапы не найдены");
+                logger.Warning("No backups found");
                 return ExitCodes.Warning;
             }
 
             if (options.Cleanup)
             {
-                logger.Info("🗑️  Очистка бэкапов...");
+                logger.Info("Cleaning backups...");
                 backupService.CleanupAll(options.Path, options.Exclude);
             }
 
             var duration = DateTime.UtcNow - startTime;
-            logger.Info($"✅ Завершено за {duration.TotalSeconds:F1}с");
+            logger.Info("Completed in " + duration.TotalSeconds.ToString("F1") + "s");
 
             return ExitCodes.Success;
         }
         catch (Exception ex)
         {
-            logger.Error($"Критическая ошибка: {ex.Message}");
+            logger.Error("Critical error: " + ex.Message);
             return ExitCodes.CriticalError;
         }
     }

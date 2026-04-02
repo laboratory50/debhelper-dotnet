@@ -27,8 +27,6 @@ public class Program
         }
         else
         {
-            Console.Error.WriteLine($"❌ Неизвестная команда: nh_patchproj");
-            Console.Error.WriteLine("Используйте 'dotnet-project-helper help' для справки");
             return ExitCodes.CriticalError;
         }
     }

@@ -19,7 +19,7 @@ public class BackupService
         if (!_enabled) return null;
         var backupPath = filePath + ".bak";
         File.Copy(filePath, backupPath, true);
-        _logger.Verbose($"Бэкап создан: {backupPath}");
+        _logger.Verbose($"Backup created: {backupPath}");
         return backupPath;
     }
 
@@ -28,12 +28,12 @@ public class BackupService
         if (!File.Exists(backupPath)) return;
         var originalPath = backupPath.Replace(".bak", "");
         File.Copy(backupPath, originalPath, true);
-        _logger.Info($"Восстановлено: {originalPath}");
+        _logger.Info($"Restored: {originalPath}");
     }
 
     public int RestoreAll(string path, string[] excludePatterns)
     {
-        _logger.Info($"🔍 Поиск бэкапов в: {path}");
+        _logger.Info($"[SEARCH] Searching for backups in: {path}");
 
         var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
         matcher.AddInclude("**/*.csproj.bak");
@@ -54,17 +54,17 @@ public class BackupService
             var backupPath = Path.GetFullPath(Path.Combine(path, file.Path));
             var originalPath = backupPath.Replace(".bak", "");
             File.Copy(backupPath, originalPath, true);
-            _logger.Info($"   [✓] Восстановлено: {Path.GetFileName(originalPath)}");
+            _logger.Info($"   [OK] Restored: {Path.GetFileName(originalPath)}");
             restored++;
         }
 
-        _logger.Info($"📊 Всего восстановлено: {restored} файлов");
+        _logger.Info($"[SUMMARY] Total restored: {restored} files");
         return restored;
     }
 
     public int CleanupAll(string path, string[] excludePatterns)
     {
-        _logger.Info($"🗑️  Очистка бэкапов в: {path}");
+        _logger.Info($"[CLEANUP] Cleaning backups in: {path}");
 
         var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
         matcher.AddInclude("**/*.bak");
@@ -82,7 +82,7 @@ public class BackupService
             deleted++;
         }
 
-        _logger.Info($"📊 Всего удалено: {deleted} бэкапов");
+        _logger.Info($"[SUMMARY] Total deleted: {deleted} backups");
         return deleted;
     }
 }

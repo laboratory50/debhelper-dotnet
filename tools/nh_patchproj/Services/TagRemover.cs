@@ -34,7 +34,7 @@ public class TagRemover
                     if (parent != null)
                     {
                         parent.RemoveChild(item);
-                        _logger.Info($"   [✓] {Path.GetFileName(project.FullPath)}: {tagName} ({item.Include})");
+                        _logger.Info($"   {Path.GetFileName(project.FullPath)}: {tagName} ({item.Include})");
                         removed++;
                     }
                 }
@@ -49,7 +49,7 @@ public class TagRemover
                     if (tagIncludes.Any(ti => target.Name.Equals(ti, StringComparison.OrdinalIgnoreCase)))
                     {
                         project.RemoveChild(target);
-                        _logger.Info($"   [✓] {Path.GetFileName(project.FullPath)}: Target Name=\"{target.Name}\"");
+                        _logger.Info($"   {Path.GetFileName(project.FullPath)}: Target Name=\"{target.Name}\"");
                         removed++;
                     }
                 }
@@ -93,7 +93,7 @@ public class TagRemover
                         {
                             target.RemoveChild(exec);
                             var condition = !string.IsNullOrEmpty(exec.Condition) ? $" Condition=\"{exec.Condition}\"" : "";
-                            _logger.Info($"   [✓] {Path.GetFileName(project.FullPath)}: Exec{condition}");
+                            _logger.Info($"   {Path.GetFileName(project.FullPath)}: Exec{condition}");
                             removed++;
                         }
                     }
@@ -111,7 +111,7 @@ public class TagRemover
                         if (tagIncludes.Any(ti => pg.Condition.Contains(ti, StringComparison.OrdinalIgnoreCase)))
                         {
                             project.RemoveChild(pg);
-                            _logger.Info($"   [✓] {Path.GetFileName(project.FullPath)}: PropertyGroup (Condition=\"{pg.Condition}\")");
+                            _logger.Info($"   {Path.GetFileName(project.FullPath)}: PropertyGroup (Condition=\"{pg.Condition}\")");
                             removed++;
                         }
                     }

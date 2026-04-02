@@ -25,7 +25,7 @@ public class ProjectScanner
 
         if (!Directory.Exists(path))
         {
-            _logger.Error($"Путь не найден: {path}");
+            _logger.Error($"Path not found: {path}");
             return files;
         }
 
@@ -48,7 +48,7 @@ public class ProjectScanner
             files.Add(fullPath);
         }
 
-        _logger.Info($"📁 Найдено: {files.Count} файлов проектов");
+        _logger.Info($"📁 Founded: {files.Count} project files");
         return files;
     }
 }

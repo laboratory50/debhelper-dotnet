@@ -5,11 +5,11 @@ namespace nh_patchproj.Services;
 public class Logger
 {
     private const string DebugPrefix = "[DEBUG]";
-    private const string WarningPrefix = "⚠️  ";
-    private const string ErrorPrefix = "❌ ";
-    private const string CheckMark = "[✓]";
-    private const string EqualsMark = "[＝]";
-    private const string SecondsSuffix = "с";
+    private const string WarningPrefix = "[WARNING] ";
+    private const string ErrorPrefix = "[ERROR] ";
+    private const string CheckMark = "[OK]";
+    private const string EqualsMark = "[=]";
+    private const string SecondsSuffix = "s";
 
     private readonly bool _verbose;
     private readonly bool _quiet;
@@ -29,12 +29,12 @@ public class Logger
     {
         if (_quiet) return;
         Console.WriteLine();
-        Console.WriteLine("📊 Итоги:");
-        Console.WriteLine($"   Файлов обработано11: {result.FilesProcessed}");
-        Console.WriteLine($"   Пакетов удалено: {result.PackagesRemoved}");
-        Console.WriteLine($"   Тегов удалено: {result.TagsRemoved}");
-        Console.WriteLine($"   Время выполнения: {duration.TotalSeconds:F1}{SecondsSuffix}");
+        Console.WriteLine("Summary:");
+        Console.WriteLine($"   Files processed: {result.FilesProcessed}");
+        Console.WriteLine($"   Packages removed: {result.PackagesRemoved}");
+        Console.WriteLine($"   Tags removed: {result.TagsRemoved}");
+        Console.WriteLine($"   Execution time: {duration.TotalSeconds:F1}{SecondsSuffix}");
         if (result.HasWarnings)
-            Console.WriteLine($"   Предупреждений: {result.Warnings.Count}");
+            Console.WriteLine($"   Warnings: {result.Warnings.Count}");
     }
 }

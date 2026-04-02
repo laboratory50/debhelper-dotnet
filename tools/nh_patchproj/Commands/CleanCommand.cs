@@ -15,7 +15,7 @@ public static class CleanCommand
         var path = ArgParser.GetOption(args, "path") ?? ArgParser.GetOption(args, "p");
         if (string.IsNullOrEmpty(path))
         {
-            Console.Error.WriteLine("❌ Ошибка: параметр --path обязателен");
+            Console.Error.WriteLine("Error: --path parameter is required");
             return ExitCodes.CriticalError;
         }
 
@@ -45,16 +45,15 @@ public static class CleanCommand
 
         try
         {
-            logger.Info($"🔧 DotNetProjectHelper v1.0.0");
-            logger.Info($"📁 Сканирование: {options.Path}");
+            logger.Info("DotNetProjectHelper v1.0.0");
+            logger.Info("Scanning: " + options.Path);
 
             if (options.DryRun)
-                logger.Warning("⚠️  Режим предпросмотра — изменения не будут сохранены");
+                logger.Warning("Preview mode - changes will not be saved");
 
-            // Отладка: показать параметры
-            logger.Verbose($"RemovePackages: [{string.Join(", ", options.RemovePackages)}]");
-            logger.Verbose($"RemoveTags: [{string.Join(", ", options.RemoveTags)}]");
-            logger.Verbose($"SingleFile: {options.SingleFile}");
+            logger.Verbose("RemovePackages: [" + string.Join(", ", options.RemovePackages) + "]");
+            logger.Verbose("RemoveTags: [" + string.Join(", ", options.RemoveTags) + "]");
+            logger.Verbose("SingleFile: " + options.SingleFile);
 
             var scanner = new ProjectScanner(logger);
             List<string> files;
@@ -63,26 +62,26 @@ public static class CleanCommand
             {
                 if (!File.Exists(options.Path))
                 {
-                    logger.Error($"Файл не найден: {options.Path}");
+                    logger.Error("File not found: " + options.Path);
                     return ExitCodes.CriticalError;
                 }
 
                 if (!options.Path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) &&
                     !options.Path.EndsWith(".props", StringComparison.OrdinalIgnoreCase))
                 {
-                    logger.Error($"Неподдерживаемый тип файла: {options.Path}");
+                    logger.Error("Unsupported file type: " + options.Path);
                     return ExitCodes.CriticalError;
                 }
 
                 files = new List<string> { Path.GetFullPath(options.Path) };
-                logger.Info("📁 Режим: один файл");
+                logger.Info("Mode: single file");
             }
             else
             {
                 files = scanner.Scan(options.Path, options.Exclude);
                 if (files.Count == 0)
                 {
-                    logger.Error("Файлы проектов не найдены");
+                    logger.Error("No project files found");
                     return ExitCodes.CriticalError;
                 }
             }
@@ -95,7 +94,7 @@ public static class CleanCommand
             {
                 try
                 {
-                    logger.Verbose($"Обработка: {file}");
+                    logger.Verbose("Processing: " + file);
 
                     if (!options.DryRun)
                         backupService.CreateBackup(file);
@@ -103,29 +102,28 @@ public static class CleanCommand
                     var project = ProjectRootElement.Open(file);
                     bool modified = false;
 
-                    // Отладка: показать условие вызова
-                    logger.Verbose($"RemovePackages.Length: {options.RemovePackages.Length}");
-                    logger.Verbose($"RemovePackageRegex.Length: {options.RemovePackageRegex.Length}");
-                    logger.Verbose($"Условие вызова RemovePackages: {options.RemovePackages.Length > 0 || options.RemovePackageRegex.Length > 0}");
+                    logger.Verbose("RemovePackages.Length: " + options.RemovePackages.Length);
+                    logger.Verbose("RemovePackageRegex.Length: " + options.RemovePackageRegex.Length);
+                    logger.Verbose("Condition for RemovePackages: " + (options.RemovePackages.Length > 0 || options.RemovePackageRegex.Length > 0));
 
                     if (options.RemovePackages.Length > 0 || options.RemovePackageRegex.Length > 0)
                     {
-                        logger.Verbose(">>> Вызов RemovePackages...");
+                        logger.Verbose("Calling RemovePackages...");
                         var removed = packageRemover.RemovePackages(project, options.RemovePackages, options.RemovePackageRegex);
-                        logger.Verbose($"<<< RemovePackages вернул: {removed}");
+                        logger.Verbose("RemovePackages returned: " + removed);
                         result.PackagesRemoved += removed;
                         if (removed > 0) modified = true;
                     }
                     else
                     {
-                        logger.Verbose(">>> RemovePackages НЕ вызван (пустые параметры)");
+                        logger.Verbose("RemovePackages not called (empty parameters)");
                     }
 
                     if (options.RemoveTags.Length > 0)
                     {
-                        logger.Verbose(">>> Вызов RemoveTags...");
+                        logger.Verbose("Calling RemoveTags...");
                         var removed = tagRemover.RemoveTags(project, options.RemoveTags, options.TagInclude);
-                        logger.Verbose($"<<< RemoveTags вернул: {removed}");
+                        logger.Verbose("RemoveTags returned: " + removed);
                         result.TagsRemoved += removed;
                         if (removed > 0) modified = true;
                     }
@@ -145,7 +143,7 @@ public static class CleanCommand
                         {
                             File.Delete(tempPath);
                             backupService.RestoreBackup(file + BackupExtension);
-                            result.Errors.Add($"Невалидный XML: {file}");
+                            result.Errors.Add("Invalid XML: " + file);
                         }
                     }
 
@@ -153,12 +151,12 @@ public static class CleanCommand
                 }
                 catch (Exception ex)
                 {
-                    result.Errors.Add($"Ошибка {file}: {ex.Message}");
-                    logger.Error($"Ошибка {file}: {ex.Message}");
+                    result.Errors.Add("Error " + file + ": " + ex.Message);
+                    logger.Error("Error " + file + ": " + ex.Message);
 
                     if (options.AutoRestore && !options.DryRun)
                     {
-                        logger.Info("🔄 Восстановление...");
+                        logger.Info("Restoring...");
                         backupService.RestoreBackup(file + BackupExtension);
                     }
                 }
@@ -168,7 +166,7 @@ public static class CleanCommand
 
             if (result.HasErrors)
             {
-                logger.Error($"Ошибок: {result.Errors.Count}");
+                logger.Error("Errors: " + result.Errors.Count);
                 return ExitCodes.CriticalError;
             }
 
@@ -176,7 +174,7 @@ public static class CleanCommand
         }
         catch (Exception ex)
         {
-            logger.Error($"Критическая ошибка: {ex.Message}");
+            logger.Error("Critical error: " + ex.Message);
             return ExitCodes.CriticalError;
         }
     }
