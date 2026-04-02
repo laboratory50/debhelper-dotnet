@@ -10,20 +10,30 @@ use parent qw/ Debian::Debhelper::Buildsystem /;
 sub DESCRIPTION { ".Net build with MSBuild" }
 sub IS_GENERATOR_BUILD_SYSTEM { 0 }
 
-sub _sdk_to_tfm {
+sub sdk_to_tfm {
         my ($ver) = @_;
         return $ver =~ /^(\d+\.\d+)/ ? "net$1" : "net8.0";
 }
 
-sub _get_projects {
+sub get_projects {
         my ($self) = @_;
         return @{$self->{buildfiles}} if $self->{buildfiles} && @{$self->{buildfiles}};
         return find(file => name => qr/\.csproj$/, maxdepth => 5)->in($self->get_sourcedir());
 }
 
-sub _get_bin_dir {
+sub get_bin_dir {
         my ($self, $proj) = @_;
         return dirname($proj) . "/bin/Release/" . $self->{target_framework};
+}
+
+sub get_obj_dir {
+        my ($self, $proj) = @_;
+        return dirname($proj) . '/obj';
+}
+
+sub ensure_dir {
+        my ($path) = @_;
+        mkdir($path, 0755) unless -d $path;
 }
 
 sub get_sdk_version {
@@ -47,33 +57,29 @@ sub new {
         my $self = $class->SUPER::new(@args);
         $self->prefer_out_of_source_building(@args);
 
-        # SDK и TargetFramework
         eval {
                 my $sdk = $self->get_sdk_version();
-                $self->{target_framework} = _sdk_to_tfm($sdk);
+                $self->{target_framework} = sdk_to_tfm($sdk);
                 verbose_print("Using TargetFramework: $self->{target_framework}");
         };
         $self->{target_framework} = "net8.0" if $@;
 
-        # Версия из changelog (для .nupkg)
         my $deb_ver = `dpkg-parsechangelog --show-field Version 2>/dev/null`;
         chomp $deb_ver;
         $self->{debian_version} = ($deb_ver =~ /^[\d.+\-~]+/) ? $deb_ver : "1.0.0";
         verbose_print("Debian version: $self->{debian_version}");
 
-        # Настройки упаковки (по умолчанию включено)
         $self->{pack_enabled} = ($ENV{NETBUILD_PACK_ENABLED} eq '0') ? 0 : 1;
         $self->{pack_output}  = $ENV{NETBUILD_PACK_OUTPUT} || 'artifact/packages';
 
         verbose_print("Pack: output=$self->{pack_output}") if $self->{pack_enabled};
 
-        # Обработка NETBUILD_* переменных
-        $self->_init_build_targets;
+        $self->init_build_targets;
 
         return $self;
 }
 
-sub _init_build_targets {
+sub init_build_targets {
         my ($self) = @_;
 
         if ($ENV{NETBUILD_BUILDFILE}) {
@@ -88,13 +94,13 @@ sub _init_build_targets {
 
         my @targets = grep { length } split /[\s,]+/, $ENV{NETBUILD_TARGETS};
         my @files;
-        my %sln = $self->_parse_solution if -e $self->get_sourcepath('*.sln');
+        my %sln = $self->parse_solution if -e $self->get_sourcepath('*.sln');
 
         for my $t (@targets) {
                 my $path;
                 $path = $self->get_sourcepath($t) if -e $self->get_sourcepath($t);
                 $path = $self->get_sourcepath($sln{$t}) if !$path && $sln{$t};
-                $path = $self->_find_project_by_name($t) if !$path;
+                $path = $self->find_project_by_name($t) if !$path;
 
                 if ($path) {
                         push @files, $path;
@@ -109,7 +115,7 @@ sub _init_build_targets {
         verbose_print("Projects to build: " . join(', ', @files)) if @files;
 }
 
-sub _parse_solution {
+sub parse_solution {
         my ($self) = @_;
         my ($sln) = glob($self->get_sourcepath('*.sln'));
         return () unless $sln;
@@ -129,7 +135,7 @@ sub _parse_solution {
         return %projects;
 }
 
-sub _find_project_by_name {
+sub find_project_by_name {
         my ($self, $name) = @_;
         for my $p (find(file => name => qr/\.csproj$/, maxdepth => 5)->in($self->get_sourcedir())) {
                 return $p if basename($p, '.csproj') eq $name;
@@ -145,43 +151,43 @@ sub check_auto_buildable {
 
 sub configure {
         my ($self) = @_;
-        $self->_run_msbuild('restore');
+        $self->run_msbuild('restore');
 }
 
 sub build {
         my ($self) = @_;
-        $self->_run_msbuild('build');
-        $self->_pack if $self->{pack_enabled};
+        $self->run_msbuild('build');
+        $self->pack if $self->{pack_enabled};
 }
 
 sub test {
         my ($self) = @_;
-        $self->_run_msbuild('test');
+        $self->run_msbuild('test');
 }
 
 sub clean {
         my ($self) = @_;
 
-        eval { $self->_run_msbuild('clean') };
+        eval { $self->run_msbuild('clean') };
         verbose_print("Warning: dotnet clean failed: $@") if $@;
 
-        for my $proj (_get_projects($self)) {
-                $self->doit_in_sourcedir('rm', '-rf', dirname($proj) . '/obj');
-                $self->doit_in_sourcedir('rm', '-rf', dirname($proj) . '/bin');
+        for my $proj (get_projects($self)) {
+                $self->doit_in_sourcedir('rm', '-rf', get_obj_dir($self, $proj));
+                $self->doit_in_sourcedir('rm', '-rf', get_bin_dir($self, $proj));
         }
 }
 
-sub _run_msbuild {
+sub run_msbuild {
         my ($self, $step) = @_;
 
-        for my $proj (_get_projects($self)) {
-                my @cmd = $self->_msbuild_cmd($proj, $step);
+        for my $proj (get_projects($self)) {
+                my @cmd = $self->build_cmd($proj, $step);
                 verbose_print("Command: @cmd") if $step eq 'build';
                 $self->doit_in_sourcedir(@cmd);
         }
 }
 
-sub _msbuild_cmd {
+sub build_cmd {
         my ($self, $proj, $step) = @_;
         my @opts;
 
@@ -196,14 +202,14 @@ sub _msbuild_cmd {
         return ('dotnet', $step, @opts);
 }
 
-sub _pack {
+sub pack {
         my ($self) = @_;
         verbose_print("Packing projects...");
 
         my $out = $self->get_sourcepath($self->{pack_output});
-        mkdir($out, 0755) unless -d $out;
+        ensure_dir($out);
 
-        for my $proj (_get_projects($self)) {
+        for my $proj (get_projects($self)) {
                 my @opts = (
                         'pack', $proj, '-c', 'Release',
                         '--no-build', '--no-restore',
@@ -220,8 +226,5 @@ sub _pack {
         }
         verbose_print("Packing completed: $out");
 }
-
-sub get_intermediate_outputpath { dirname(shift) . '/obj' }
-sub get_outputpath { dirname(shift) . '/bin' }
 
 1;
