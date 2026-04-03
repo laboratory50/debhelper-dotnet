@@ -12,6 +12,7 @@ use JSON;
 use File::Basename;
 use File::Find::Rule qw/ find rule /;
 use Data::Dumper;
+use Dpkg::Changelog::Debian;
 use Debian::Debhelper::Dh_Lib qw(%dh error verbose_print restore_file_on_clean);
 use parent qw(Debian::Debhelper::Buildsystem);
 
@@ -27,7 +28,7 @@ sub get_sdk_version {
         my $base;
         my @sdk;
         if (-d "/usr/lib/mono/sdk") {
-                $base = "/usr/lib/dotnet/sdk";
+                $base = "/usr/lib/mono/sdk";
         }
         elsif (-d "/usr/lib/dotnet/sdk") {
                 $base = "/usr/lib/dotnet/sdk";
@@ -59,7 +60,7 @@ sub check_auto_buildable {
                 return (-e $this->get_sourcepath($ENV{'NETBUILD_BUILDFILE'})) ? 1 : 0;
         }
         else {
-                return (-e $this->get_sourcepath('*.sln') || -e $this->get_sourcepath('*.cproj')) ? 1 : 0;
+                return (-e $this->get_sourcepath('*.sln') || -e $this->get_sourcepath('*.csproj')) ? 1 : 0;
         }
 }
 
@@ -67,7 +68,7 @@ sub new {
         my $class=shift;
         my $this=$class->SUPER::new(@_);
         my %projects;
-        my $tfm;
+        my $sdkver;
 
         $this->prefer_out_of_source_building(@_);
 
@@ -100,12 +101,24 @@ sub new {
                 }
         }
 
-        $self->{target_framework} = "net" . $self->get_sdk_version();
+        $sdkver = $this->get_sdk_version();
+        $sdkver =~ s/\.\d+$//;
 
-#        my @projects=glob($this->get_sourcepath('*.cproj'));
+        $this->{target_framework} = 'net' . $sdkver;
+
+        my $changelog = Dpkg::Changelog::Debian->new(range => {"count" => 1});
+        $changelog->load("debian/changelog");
+        my $version = @{$changelog}[0]->get_version();
+        $version =~ s/-[^-]+$//;  # revision
+        $version =~ s/^\d+://;    # epoch
+        $version =~ s/~/-/;       # ignore tilde versions
+        
+        $this->{upstream_version} = $version;
+
+#        my @projects=glob($this->get_sourcepath('*.csproj'));
 #
 #        if (@projects > 1) {
-#                error("Multiple .cproj files");
+#                error("Multiple .csproj files");
 #        }
 #        elsif (@projects > 0) {
 #        }
@@ -115,13 +128,67 @@ sub new {
 
 sub configure {
         my $this=shift;
+
+        if ($this->{buildfiles}) {
+                foreach my $buildfile (@{$this->{buildfiles}}) {
+                        $this->patchproj($buildfile, @_);
+                }
+        }
+
+        $ENV{NUGET_OFFLINE} = 1;
         foreach my $command ($this->msbuild_commands('restore', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
 }
 
+sub patchproj {
+        my $this=shift;
+        my $buildfile=shift;
+        my @args = @_;
+        my $patchproj = 'debian/' . lc(basename($buildfile, '.csproj'));
+
+        if (-e $patchproj) {
+                verbose_print("using $patchproj");
+                push @args, make_patchproj_args($patchproj);
+        }
+        
+        if (@args) {
+                verbose_print("patching $buildfile");
+                #restore_file_on_clean($buildfile);
+                $this->doit_in_sourcedir('nh_patchproj', 'clean', '--path', $buildfile, '--quiet', '--no-backup', @args);
+        }
+}
+
+sub make_patchproj_args {
+        my @args;
+        my $patchfile = shift;
+
+        if (-e $patchfile) {
+                open my $fd, '<', $patchfile or error("Cannot open $patchfile: $!");
+
+                while (<$fd>) {
+                        # Пропуск строк, начинающихся с #
+                        next if /^#/;
+                        chomp($_);
+                        my @parts = split ' ';
+
+                        push @args, '--' . shift @parts;
+                        push @args, @parts;
+                }
+                close $fd;
+        }
+        return @args;
+}
+
 sub clean {
         my $this=shift;
+        if ($this->{buildfiles}) {
+                foreach my $buildfile (@{$this->{buildfiles}}) {
+                        $this->doit_in_sourcedir('rm', '-rf', get_intermediate_outputpath($buildfile));
+                        $this->doit_in_sourcedir('rm', '-rf', get_outputpath($buildfile));
+                }
+        }
+
         foreach my $command ($this->msbuild_commands('clean', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
@@ -136,6 +203,8 @@ sub clean {
 
 sub build {
         my $this=shift;
+
+        $ENV{NUGET_OFFLINE} = 1;
         foreach my $command ($this->msbuild_commands('build', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
@@ -177,15 +246,29 @@ sub msbuild_command {
 
         print ("\t$step $buildfile\n");
 
-        push @options, '-p:TargetFrameworks='
-        push @options, '-p:TargetFramework=' . $this->{target_framework}
-
         if ($buildfile) {
                 push @options, $buildfile;
         }
 
+        push @options, '--nologo';
+        push @options, '--disable-build-servers';
+
+        if ($step eq 'restore' or $step eq 'pack') {
+                push @options, '-p:TargetFrameworks=';
+                push @options, '-p:TargetFramework=' . $this->{target_framework};
+        }
+        else {
+                push @options, '--framework', $this->{target_framework};
+        }
+
         if ($step eq 'build' or $step eq 'test') {
                 push @options, '-c', 'Release';
+                push @options, '--no-restore';
+        }
+
+        if ($step eq 'pack') {
+                push @options, '--no-build';
+                push @options, '-p:PackageVersion=' . $this->{upstream_version};
         }
 
         if ($this->{targets}) {
@@ -193,6 +276,9 @@ sub msbuild_command {
                         push @options, "-t:$target";
                 }
         }
+
+        push @options, '-nr:false';
+        push @options, '-v', 'n' if not $dh{QUIET};
 
         return ['dotnet', $step, @options];
 }
