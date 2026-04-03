@@ -67,6 +67,7 @@ sub new {
         my $class=shift;
         my $this=$class->SUPER::new(@_);
         my %projects;
+        my $tfm;
 
         $this->prefer_out_of_source_building(@_);
 
@@ -98,6 +99,8 @@ sub new {
                         }
                 }
         }
+
+        $self->{target_framework} = "net" . $self->get_sdk_version();
 
 #        my @projects=glob($this->get_sourcepath('*.cproj'));
 #
@@ -136,6 +139,9 @@ sub build {
         foreach my $command ($this->msbuild_commands('build', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
+        foreach my $command ($this->msbuild_commands('pack', @_)) {
+                $this->doit_in_sourcedir(@$command);
+	}
 }
 
 sub test {
@@ -170,6 +176,9 @@ sub msbuild_command {
         #my $dir = $this->get_sourcedir();
 
         print ("\t$step $buildfile\n");
+
+        push @options, '-p:TargetFrameworks='
+        push @options, '-p:TargetFramework=' . $this->{target_framework}
 
         if ($buildfile) {
                 push @options, $buildfile;
