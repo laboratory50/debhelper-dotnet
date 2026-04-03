@@ -1,6 +1,24 @@
 #!/usr/bin/make -f
-#export DH_VERBOSE = 1
 
 %:
 	dh $@
+	
+override_dh_auto_build:
+	# Сборка nh_patchproj (если исходники есть)
+	@if [ -d "$(CURDIR)/tools/nh_patchproj" ]; then \
+		echo "🔧 Building nh_patchproj..."; \
+		cd $(CURDIR)/tools/nh_patchproj && \
+		dotnet publish -c Release --self-contained false --verbosity quiet; \
+	else \
+		echo "⚠️  tools/nh_patchproj not found"; \
+	fi
+	# Оригинальный Makefile (генерация man-страниц)
+	$(MAKE) -f Makefile all
 
+
+override_dh_install:
+	$(MAKE) -f Makefile install DESTDIR=$(CURDIR)/debian/tmp
+	dh_install
+
+override_dh_auto_clean:
+	$(MAKE) -f Makefile clean
