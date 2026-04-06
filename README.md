@@ -87,8 +87,8 @@ export NETBUILD_TARGETS = MyLibrary1 MyTool2
 проектам.
 
 ```
-override_dh_configure:
-        dh_configure -- --remove-package MinVer
+override_dh_auto_configure:
+        dh_auto_configure -- --remove-package MinVer
 ```
 
 Способ № 2. Задание параметров для конкретных проектов. Параметры задаются в файлах
