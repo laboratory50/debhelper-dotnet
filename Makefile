@@ -11,7 +11,8 @@ all: debhelper/dh_installnuget.1
 # Установка файлов
 # ============================================================================
 install:
-	$(INSTALL) -D -t $(DESTDIR)/$(DHLIBPATH)/Sequence/dotnet.pm debhelper/sequence.pm
+	$(INSTALL) -d $(DESTDIR)/$(DHLIBPATH)/Sequence
+	$(INSTALL) debhelper/sequence.pm $(DESTDIR)/$(DHLIBPATH)/Sequence/dotnet.pm
 	$(INSTALL) -D -t $(DESTDIR)/$(DHLIBPATH)/Buildsystem/ debhelper/arcade.pm debhelper/dotnet.pm
 
 	$(INSTALL) -D -t $(DESTDIR)/usr/bin dh_make_dotnet debhelper/dh_installnuget
