@@ -74,17 +74,12 @@ use warnings;
 use Debian::Debhelper::Dh_Lib;
 use Digest::SHA qw(sha512_base64 sha256_base64);
 use Archive::Zip qw(:ERROR_CODES);
+use Archive::Extract;
 use XML::LibXML;
 use File::Basename;
 
-# =============================================================================
-# Путь по умолчанию
-# =============================================================================
 my $default_path = '/usr/lib/nuget';
 
-# =============================================================================
-# Инициализация
-# =============================================================================
 my $nuget_path;
 
 init(options => {
@@ -99,70 +94,85 @@ $nuget_path =~ s/\/+$//;
 
 verbose_print("Installation path: $nuget_path") if $dh{V};
 
-# =============================================================================
-# Основная логика
-# =============================================================================
-foreach my $package (@{$dh{DOPACKAGES}}) {
-    my $nugetlistfile = pkgfile(
-        {
-            'named'                            => 1,
-            'support-architecture-restriction' => 0
-        },
-        $package,
-        'nuget'
-    );
+if (-e 'debian/nuget' or glob('debian/*.nuget')) {
+    # Если заданы файлы, работаем по ним
+    foreach my $package (@{$dh{DOPACKAGES}}) {
+        my $nugetlistfile = pkgfile(
+            {
+                'named'                            => 1,
+                'support-architecture-restriction' => 0
+            },
+            $package,
+            'nuget'
+        );
 
-    next unless $nugetlistfile;
+        next unless $nugetlistfile;
 
-    open(my $fd, '<:encoding(utf8)', $nugetlistfile)
-        or error("open $nugetlistfile failed: $!");
+        open(my $fd, '<:encoding(utf8)', $nugetlistfile)
+            or error("open $nugetlistfile failed: $!");
 
-    while (my $nugetfile = <$fd>) {
-        chomp $nugetfile;
-        next if $nugetfile =~ /^\s*($|#)/;
+        while (my $nugetfile = <$fd>) {
+            chomp $nugetfile;
+            next if $nugetfile =~ /^\s*($|#)/;
 
-        error("package $nugetfile not exists") unless -f $nugetfile;
+            error("package $nugetfile not exists") unless -f $nugetfile;
 
-        print("\tInstalling $nugetfile\n");
+            install_nuget($package, $nugetfile);
+        }
+        close $fd;
+    }
+} else {
+    # Иначе попытаемся просто распаковать все .nupkg
+    foreach my $package (@{$dh{DOPACKAGES}}) {
+        my $tmp = tmpdir($package);
+        next unless -d $tmp;
 
-        my ($id, $version) = get_nuget_metadata($nugetfile, $package);
-        verbose_print("$nugetfile $id ($version)") if $dh{V};
-        
-        my $tmpdir = tmpdir($package);
-        # Добавлен разделитель / между $tmpdir и $nuget_path
-        my $fulldest = "$tmpdir/$nuget_path/" . lc($id) . "/" . lc($version);
+        my @nupkgs = glob($tmp . '/' . $nuget_path . '/*.nupkg');
+        foreach my $nupkg (@nupkgs) {
+                install_nuget($package, $nupkg);
+                rm_files($nupkg);
+        }
+    }
+}
 
-        install_dir($fulldest) unless -d $fulldest;
+sub install_nuget {
+    my $package = shift;
+    my $nugetfile = shift;
 
-        verbose_print("extracting $nugetfile");
-        my $archive = Archive::Zip->new();
-        $archive->read($nugetfile) == AZ_OK or error("error opening archive $nugetfile");
-        $archive->extractTree('', $fulldest) == AZ_OK or error("failed to extract $nugetfile");
+    print("\tInstalling $nugetfile\n");
 
-        my $checksumfile = $fulldest . '/' . lc(basename($nugetfile)) . '.sha512';
-        verbose_print("generating $checksumfile");
-        open(my $fh, '>', $checksumfile) or error("failed to write to $checksumfile");
-        print {$fh} sha512_base64($nugetfile);
-        close($fh) or error("closing $checksumfile: $!");
+    my ($id, $version) = get_nuget_metadata($nugetfile, $package);
+    verbose_print("$nugetfile $id ($version)") if $dh{V};
+    
+    my $tmpdir = tmpdir($package);
+    # Добавлен разделитель / между $tmpdir и $nuget_path
+    my $fulldest = "$tmpdir/$nuget_path/" . lc($id) . "/" . lc($version);
 
-        my $metadatafile = "$fulldest/.nupkg.metadata";
-        verbose_print("generating $metadatafile");
-        my $checksum = sha256_base64($nugetfile);
-        open($fh, '>', $metadatafile) or error("failed to write to $metadatafile");
-        print {$fh} << "JSON";
+    install_dir($fulldest) unless -d $fulldest;
+
+    verbose_print("extracting $nugetfile to $fulldest");
+    my $archive = Archive::Extract->new(archive => $nugetfile, type => 'zip');
+    $archive->extract(to => $fulldest) or error("error opening archive $nugetfile");
+
+    my $checksumfile = $fulldest . '/' . lc(basename($nugetfile)) . '.sha512';
+    verbose_print("generating $checksumfile");
+    open(my $fh, '>', $checksumfile) or error("failed to write to $checksumfile");
+    print {$fh} sha512_base64($nugetfile);
+    close($fh) or error("closing $checksumfile: $!");
+
+    my $metadatafile = "$fulldest/.nupkg.metadata";
+    verbose_print("generating $metadatafile");
+    my $checksum = sha256_base64($nugetfile);
+    open($fh, '>', $metadatafile) or error("failed to write to $metadatafile");
+    print {$fh} << "JSON";
 {
-  "version": 2,
-  "contentHash": "$checksum"
+"version": 2,
+"contentHash": "$checksum"
 }
 JSON
-        close($fh) or error("closing $metadatafile: $!");
-    }
-    close $fd;
+    close($fh) or error("closing $metadatafile: $!");
 }
 
-# =============================================================================
-# Вспомогательные функции
-# =============================================================================
 sub get_nuget_metadata {
     my ($nugetfile, $package) = @_;
 
@@ -180,7 +190,7 @@ sub get_nuget_metadata {
 
         my $id = $id_node ? clean_text($id_node->textContent()) : undef;
         my $ver = $ver_node ? clean_text($ver_node->textContent()) : undef;
-
+        
         return ($id, $ver);
     } else {
         error(".nuspec file not found in $nugetfile");
