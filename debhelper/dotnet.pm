@@ -17,11 +17,19 @@ use Debian::Debhelper::Dh_Lib qw(%dh error verbose_print restore_file_on_clean);
 use parent qw(Debian::Debhelper::Buildsystem);
 
 sub DESCRIPTION {
-        ".Net build with MSBuild"
+        '.Net build with MSBuild.'
 }
 
 sub IS_GENERATOR_BUILD_SYSTEM {
         return 0;
+}
+
+sub lib_install_dir {
+        return '/usr/lib/sharedstore';
+}
+
+sub nuget_install_dir {
+        return '/usr/lib/nuget';
 }
 
 sub get_sdk_version {
@@ -214,10 +222,37 @@ sub build {
 }
 
 sub test {
-        my $this=shift;
+        my $this = shift;
         foreach my $command ($this->msbuild_commands('test', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
+}
+
+sub install {
+        my $this = shift;
+        my $destdir = shift;
+        my $libdir = $destdir . lib_install_dir();
+        my $nugetdir = $destdir . nuget_install_dir();
+
+        if ($this->{buildfiles}) {
+                foreach my $buildfile (@{$this->{buildfiles}}) {
+                        my @assemblies = glob($this->get_target_outputpath($buildfile) . '/*.dll');
+                        @assemblies or error("Assemblies not found");
+                        $this->doit_in_sourcedir('install', '-D', '-t', $libdir, @assemblies);
+
+                        my @nugets = glob($this->get_nuget_outputpath($buildfile) . '/*.nupkg');
+                        @nugets or error("NuGet packages not found");
+                        $this->doit_in_sourcedir('install', '-D', '-t', $nugetdir, @nugets);
+                }
+        } else {
+                my @assemblies = glob($this->get_target_outputpath('.') . '/*.dll');
+                @assemblies or error("Assemblies not found");
+                $this->doit_in_sourcedir('install', '-D', '-t', $libdir, @assemblies);
+
+                my @nugets = glob($this->get_nuget_outputpath('.') . '/*.nupkg');
+                @nugets or error("NuGet packages not found");
+                $this->doit_in_sourcedir('install', '-D', '-t', $nugetdir, @nugets);
+        }
 }
 
 sub msbuild_commands {
@@ -228,8 +263,7 @@ sub msbuild_commands {
                 foreach my $buildfile (@{$this->{buildfiles}}) {
                         push @result, $this->msbuild_command($buildfile, @_);
                 }
-        }
-        else {
+        } else {
                 push @result, $this->msbuild_command(undef, @_);
         }
 
@@ -256,8 +290,7 @@ sub msbuild_command {
         if ($step eq 'restore' or $step eq 'pack') {
                 push @options, '-p:TargetFrameworks=';
                 push @options, '-p:TargetFramework=' . $this->{target_framework};
-        }
-        else {
+        } else {
                 push @options, '--framework', $this->{target_framework};
         }
 
@@ -306,6 +339,20 @@ sub get_intermediate_outputpath {
 
 sub get_outputpath {
         return dirname(shift) . '/bin';
+}
+
+sub get_target_outputpath {
+        my $this = shift;
+        my $basedir = shift;
+
+        return get_outputpath($basedir) . '/Release/' . $this->{target_framework};
+}
+
+sub get_nuget_outputpath {
+        my $this = shift;
+        my $basedir = shift;
+
+        return get_outputpath($basedir) . '/Release';
 }
 
 1
