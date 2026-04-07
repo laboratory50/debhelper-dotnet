@@ -15,7 +15,6 @@ use Data::Dumper;
 use Dpkg::Changelog::Debian;
 use Debian::Debhelper::Dh_Lib qw(%dh error verbose_print restore_file_on_clean);
 use parent qw(Debian::Debhelper::Buildsystem);
-use Cwd qw(getcwd);
 
 sub DESCRIPTION {
         '.Net build with MSBuild.'
@@ -230,32 +229,31 @@ sub test {
 }
 
 sub install {
-    my $this = shift;
-    my $destdir = shift;
-    my $libdir = $destdir . lib_install_dir();
-    my $nugetdir = $destdir . nuget_install_dir();
-    
-    my $sourcedir = $this->get_sourcedir();
+        my $this = shift;
+        my $destdir = shift;
+        my $libdir = $destdir . lib_install_dir();
+        my $nugetdir = $destdir . nuget_install_dir();
+        my $sourcedir = $this->get_sourcedir();
 
-    if ($this->{buildfiles}) {
-        foreach my $buildfile (@{$this->{buildfiles}}) {
-            my @assemblies = glob($sourcedir . '/' . $this->get_target_outputpath($buildfile) . '/*.dll');
-            @assemblies or error("Assemblies not found");
-            $this->doit_in_sourcedir('install', '-D', '-t', $libdir, @assemblies);
+        if ($this->{buildfiles}) {
+                foreach my $buildfile (@{$this->{buildfiles}}) {
+                        my @assemblies = glob($this->get_target_outputpath($buildfile) . '/*.dll');
+                        @assemblies or error("Assemblies not found");
+                        $this->doit_in_sourcedir('install', '-D', '-t', $libdir, @assemblies);
 
-            my @nugets = glob($sourcedir . '/' . $this->get_nuget_outputpath($buildfile) . '/*.nupkg');
-            @nugets or error("NuGet packages not found");
-            $this->doit_in_sourcedir('install', '-D', '-t', $nugetdir, @nugets);
+                        my @nugets = glob($this->get_nuget_outputpath($buildfile) . '/*.nupkg');
+                        @nugets or error("NuGet packages not found");
+                        $this->doit_in_sourcedir('install', '-D', '-t', $nugetdir, @nugets);
+                }
+        } else {
+                my @assemblies = glob($sourcedir . '/' . $this->get_target_outputpath('.') . '/*.dll');
+                @assemblies or error("Assemblies not found");
+                $this->doit_in_sourcedir('install', '-D', '-t', $libdir, @assemblies);
+
+                my @nugets = glob($sourcedir . '/' . $this->get_nuget_outputpath('.') . '/*.nupkg');
+                @nugets or error("NuGet packages not found");
+                $this->doit_in_sourcedir('install', '-D', '-t', $nugetdir, @nugets);
         }
-    } else {
-        my @assemblies = glob($sourcedir . '/' . $this->get_target_outputpath('.') . '/*.dll');
-        @assemblies or error("Assemblies not found");
-        $this->doit_in_sourcedir('install', '-D', '-t', $libdir, @assemblies);
-
-        my @nugets = glob($sourcedir . '/' . $this->get_nuget_outputpath('.') . '/*.nupkg');
-        @nugets or error("NuGet packages not found");
-        $this->doit_in_sourcedir('install', '-D', '-t', $nugetdir, @nugets);
-    }
 }
 
 sub msbuild_commands {
@@ -274,57 +272,57 @@ sub msbuild_commands {
 }
 
 sub msbuild_command {
-    my $this = shift;
-    my $buildfile = shift;
-    my $step = shift;
-    my @options = @_;
+        my $this = shift;
+        my $buildfile = shift;
+        my $step = shift;
+        my @options = @_;
 
-    print ("\t$step $buildfile\n");
+        print ("\t$step $buildfile\n");
 
-    if ($buildfile) {
-        push @options, $buildfile;
-    }
-
-    push @options, '--nologo';
-    push @options, '--disable-build-servers';
-
-    if ($step eq 'restore' or $step eq 'pack') {
-        push @options, '-p:TargetFrameworks=' . $this->{target_framework};
-    } else {
-        push @options, '--framework', $this->{target_framework};
-    }
-
-    if ($step eq 'build' or $step eq 'test') {
-        push @options, '-c', 'Release';
-        push @options, '--no-restore';
-        push @options, '-p:LangVersion=12.0';
-        push @options, '-p:TreatWarningsAsErrors=false';
-    }
-
-    if ($step eq 'pack') {
-        push @options, '--no-build';
-        push @options, '-p:PackageVersion=' . $this->{upstream_version};
-    }
-
-    if ($buildfile && ($step eq 'restore' || $step eq 'build' || $step eq 'pack')) {
-        my $tfm = $this->{target_framework};
-        push @options, "-p:BaseOutputPath=bin/";
-        push @options, "-p:OutputPath=bin/Release/$tfm/";
-        push @options, "-p:PackageOutputPath=bin/Release/";
-        push @options, "-p:ArtifactsPath=bin/";
-        push @options, "-p:BaseIntermediateOutputPath=obj/";
-    }
-
-    if ($this->{targets}) {
-        foreach my $target (split ' ', $this->{targets}) {
-            push @options, "-t:$target";
+        if ($buildfile) {
+                push @options, $buildfile;
         }
-    }
 
-    push @options, '-nr:false';
-    push @options, '-v', 'n' if not $dh{QUIET};
+        push @options, '--nologo';
+        push @options, '--disable-build-servers';
 
-    return ['dotnet', $step, @options];
+        if ($step eq 'restore' or $step eq 'pack') {
+                push @options, '-p:TargetFrameworks=' . $this->{target_framework};
+        } else {
+                push @options, '--framework', $this->{target_framework};
+        }
+
+        if ($step eq 'build' or $step eq 'test') {
+                push @options, '-c', 'Release';
+                push @options, '--no-restore';
+                push @options, '-p:LangVersion=12.0';
+                push @options, '-p:TreatWarningsAsErrors=false';
+        }
+
+        if ($step eq 'pack') {
+                push @options, '--no-build';
+                push @options, '-p:PackageVersion=' . $this->{upstream_version};
+        }
+        
+        if ($buildfile && ($step eq 'restore' || $step eq 'build' || $step eq 'pack')) {
+              my $tfm = $this->{target_framework};
+              push @options, "-p:BaseOutputPath=bin/";
+              push @options, "-p:OutputPath=bin/Release/$tfm/";
+              push @options, "-p:PackageOutputPath=bin/Release/";
+              push @options, "-p:ArtifactsPath=bin/";
+              push @options, "-p:BaseIntermediateOutputPath=obj/";
+        }
+
+        if ($this->{targets}) {
+                foreach my $target (split ' ', $this->{targets}) {
+                        push @options, "-t:$target";
+                }
+        }
+
+        push @options, '-nr:false';
+        push @options, '-v', 'n' if not $dh{QUIET};
+
+        return ['dotnet', $step, @options];
 }
 
 sub get_sln_projects {
