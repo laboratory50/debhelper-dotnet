@@ -16,6 +16,10 @@ use Dpkg::Changelog::Debian;
 use Debian::Debhelper::Dh_Lib qw(%dh error verbose_print restore_file_on_clean);
 use parent qw(Debian::Debhelper::Buildsystem);
 
+our $BIN_DIR = 'bin';
+our $OBJ_DIR = 'obj';
+our $BUILD_CONFIG = 'Release';
+
 sub DESCRIPTION {
         '.Net build with MSBuild.'
 }
@@ -190,23 +194,30 @@ sub make_patchproj_args {
 
 sub clean {
         my $this=shift;
-        if ($this->{buildfiles}) {
-                foreach my $buildfile (@{$this->{buildfiles}}) {
-                        $this->doit_in_sourcedir('rm', '-rf', get_intermediate_outputpath($buildfile));
-                        $this->doit_in_sourcedir('rm', '-rf', get_outputpath($buildfile));
-                }
-        }
 
         foreach my $command ($this->msbuild_commands('clean', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
 
         if ($this->{buildfiles}) {
+                verbose_print("Manual cleanup of build directories...");
                 foreach my $buildfile (@{$this->{buildfiles}}) {
-                        $this->doit_in_sourcedir('rm', '-rf', get_intermediate_outputpath($buildfile));
-                        $this->doit_in_sourcedir('rm', '-rf', get_outputpath($buildfile));
+                        my $base = dirname($buildfile);
+                        my $obj_path = "${base}/${OBJ_DIR}";
+                        my $bin_path = "${base}/${BIN_DIR}";
+                        
+                        $this->doit_in_sourcedir('rm', '-rf', $obj_path) if -e $obj_path;
+                        $this->doit_in_sourcedir('rm', '-rf', $bin_path) if -e $bin_path;
                 }
+        } else {
+                my $sourcedir = $this->get_sourcedir();
+                my $obj_path = "${sourcedir}/${OBJ_DIR}";
+                my $bin_path = "${sourcedir}/${BIN_DIR}";
+                
+                $this->doit_in_sourcedir('rm', '-rf', $obj_path) if -e $obj_path;
+                $this->doit_in_sourcedir('rm', '-rf', $bin_path) if -e $bin_path;
         }
+
 }
 
 sub build {
@@ -306,11 +317,11 @@ sub msbuild_command {
         
         if ($buildfile && ($step eq 'restore' || $step eq 'build' || $step eq 'pack')) {
               my $tfm = $this->{target_framework};
-              push @options, "-p:BaseOutputPath=bin/";
-              push @options, "-p:OutputPath=bin/Release/$tfm/";
-              push @options, "-p:PackageOutputPath=bin/Release/";
-              push @options, "-p:ArtifactsPath=bin/";
-              push @options, "-p:BaseIntermediateOutputPath=obj/";
+              push @options, "-p:BaseOutputPath=${BIN_DIR}/";
+              push @options, "-p:OutputPath=${BIN_DIR}/${BUILD_CONFIG}/${tfm}/";
+              push @options, "-p:PackageOutputPath=${BIN_DIR}/${BUILD_CONFIG}/";
+              push @options, "-p:ArtifactsPath=${BIN_DIR}/";
+              push @options, "-p:BaseIntermediateOutputPath=${OBJ_DIR}/";
         }
 
         if ($this->{targets}) {
@@ -343,25 +354,25 @@ sub get_sln_projects {
 }
 
 sub get_intermediate_outputpath {
-        return dirname(shift) . '/obj';
+        return dirname(shift) . "/${OBJ_DIR}";
 }
 
 sub get_outputpath {
-        return dirname(shift) . '/bin';
+        return dirname(shift) . "/${BIN_DIR}";
 }
 
 sub get_target_outputpath {
         my $this = shift;
         my $basedir = shift;
 
-        return get_outputpath($basedir) . '/Release/' . $this->{target_framework};
+        return get_outputpath($basedir) . "/${BUILD_CONFIG}/" . $this->{target_framework};
 }
 
 sub get_nuget_outputpath {
         my $this = shift;
         my $basedir = shift;
 
-        return get_outputpath($basedir) . '/Release';
+        return get_outputpath($basedir) . "/${BUILD_CONFIG}";
 }
 
 1
