@@ -22,8 +22,8 @@ public class PackageRemover
         
         // Поиск PackageReference
         var packages = project.Items
-            .Where(i => i.ItemType == "PackageReference")
-            .ToList();
+        .Where(i => i.ItemType == "PackageReference" || i.ItemType == "PackageVersion" || i.ItemType == "GlobalPackageReference")
+        .ToList();
         
         _logger.Verbose($"Founded PackageReference: {packages.Count}");
         

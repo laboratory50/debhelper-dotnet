@@ -1,5 +1,6 @@
 using Microsoft.Extensions.FileSystemGlobbing;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;  // 🔹 ДОБАВЛЕНО
+using nh_patchproj.Services;
 
 namespace nh_patchproj.Services;
 
@@ -16,7 +17,8 @@ public class ProjectScanner
         if (File.Exists(path))
         {
             if (path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) ||
-                path.EndsWith(".props", StringComparison.OrdinalIgnoreCase))
+                path.EndsWith(".props", StringComparison.OrdinalIgnoreCase) ||
+                path.EndsWith(".targets", StringComparison.OrdinalIgnoreCase))
             {
                 files.Add(Path.GetFullPath(path));
             }
@@ -32,23 +34,21 @@ public class ProjectScanner
         var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
         matcher.AddInclude("**/*.csproj");
         matcher.AddInclude("**/*.props");
+        matcher.AddInclude("**/*.targets");
 
         foreach (var pattern in excludePatterns)
             matcher.AddExclude(pattern);
 
-        matcher.AddExclude("**/obj/**");
-        matcher.AddExclude("**/bin/**");
-        matcher.AddExclude("**/.git/**");
-
-        var results = matcher.Execute(new DirectoryInfoWrapper(new DirectoryInfo(path)));
+        var results = matcher.Execute(new DirectoryInfoWrapper(new DirectoryInfo(path)));  // 🔹 ТЕПЕРЬ РАБОТАЕТ
 
         foreach (var file in results.Files)
         {
             var fullPath = Path.GetFullPath(Path.Combine(path, file.Path));
-            files.Add(fullPath);
+            if (!files.Contains(fullPath))
+                files.Add(fullPath);
         }
 
-        _logger.Info($"📁 Founded: {files.Count} project files");
+        _logger.Verbose($"Founded: {files.Count} project files");
         return files;
     }
 }
