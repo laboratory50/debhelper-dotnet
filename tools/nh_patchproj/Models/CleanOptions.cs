@@ -12,5 +12,5 @@ public record CleanOptions(
     bool Quiet,
     string[] Exclude,
     bool AutoRestore,
-    bool SingleFile
-);
+    bool SingleFile,
+    bool NoAct);

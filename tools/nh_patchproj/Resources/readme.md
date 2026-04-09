@@ -36,6 +36,8 @@ Utility for modifying MSBuild project files (.csproj, .props)
 | --exclude | -e | Exclude paths by pattern |
 | --verbose | -v | Verbose logging |
 | --quiet | -q | Minimal logging |
+| --no-act | -na | List files that would be modified (no changes, minimal output) |
+| --xpath | -x | XPath expression for advanced tag selection |
 
 ---
 

@@ -9,16 +9,17 @@ public class Program
     public static int Main(string[] args)
     {
         MSBuildLocator.RegisterDefaults();
+        
         var parsed = ArgParser.Parse(args);
         var command = parsed.Command?.ToLowerInvariant();
-        
+
         if (command == "clean")
         {
             return CleanCommand.Execute(parsed);
         }
         else if (command == "restore")
         {
-            return RestoreCommand.Execute(parsed);
+            return RestoreCommand.Execute(parsed);  // ← Передаём ParsedArgs, не RestoreOptions
         }
         else if (command == "help" || command == "--help" || command == "-h" || command == null)
         {
@@ -27,6 +28,8 @@ public class Program
         }
         else
         {
+            Console.WriteLine($"Unknown command: {command}");
+            ArgParser.PrintHelp();
             return ExitCodes.CriticalError;
         }
     }

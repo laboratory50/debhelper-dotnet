@@ -6,66 +6,117 @@ namespace nh_patchproj.Commands;
 
 public static class RestoreCommand
 {
+    private const string BackupExtension = ".bak";
+
     public static int Execute(ArgParser.ParsedArgs args)
     {
-        var path = ArgParser.GetOption(args, "path") ?? ArgParser.GetOption(args, "p");
-        if (string.IsNullOrEmpty(path))
-        {
-            Console.Error.WriteLine("Error: --path parameter is required");
-            return ExitCodes.CriticalError;
-        }
-
-        var options = new RestoreOptions(
-            Path: path,
-            Verbose: ArgParser.GetOptionBool(args, "verbose") || ArgParser.GetOptionBool(args, "v"),
-            Quiet: ArgParser.GetOptionBool(args, "quiet") || ArgParser.GetOptionBool(args, "q"),
-            Exclude: ArgParser.GetOptionArray(args, "exclude").Concat(ArgParser.GetOptionArray(args, "e")).ToArray(),
-            Cleanup: ArgParser.GetOptionBool(args, "cleanup") || ArgParser.GetOptionBool(args, "c")
-        );
-
-        return Execute(options);
-    }
-
-    public static int Execute(RestoreOptions options)
-    {
         var startTime = DateTime.UtcNow;
-        var logger = new Logger(options.Verbose, options.Quiet);
+        var logger = new Logger(
+            ArgParser.GetOptionBool(args, "verbose") || ArgParser.GetOptionBool(args, "v"),
+            ArgParser.GetOptionBool(args, "quiet") || ArgParser.GetOptionBool(args, "q")
+        );
+        var result = new OperationResult();
 
         try
         {
             logger.Info("DotNetProjectHelper v1.0.0 - Restore");
-            logger.Info("Path: " + options.Path);
+            
+            // 🔹 ИЗМЕНЕНИЕ: если path не указан, используем текущую директорию
+            var pathOptions = ArgParser.GetOption(args, "path");
+            var pOptions = ArgParser.GetOption(args, "p");
+            string? path = null;
+            
+            if (pathOptions.Length > 0)
+                path = pathOptions[0];
+            else if (pOptions.Length > 0)
+                path = pOptions[0];
+            else
+                path = Directory.GetCurrentDirectory();  // ← ТЕПЕРЬ ПО УМОЛЧАНИЮ
+            
+            logger.Info("Path: " + path);
 
-            if (!Directory.Exists(options.Path))
+            if (!Directory.Exists(path))
             {
-                logger.Error("Path not found: " + options.Path);
+                logger.Error("Path not found: " + path);
                 return ExitCodes.CriticalError;
             }
 
-            var backupService = new BackupService(logger, true);
-            var restored = backupService.RestoreAll(options.Path, options.Exclude);
+            var exclude = ArgParser.GetOption(args, "exclude")
+                .Concat(ArgParser.GetOption(args, "e")).ToArray();
+            var cleanup = ArgParser.GetOptionBool(args, "cleanup") || ArgParser.GetOptionBool(args, "c");
 
-            if (restored == 0)
+            var scanner = new ProjectScanner(logger);
+            var files = scanner.Scan(path, exclude);
+            
+            if (files.Count == 0)
             {
-                logger.Warning("No backups found");
-                return ExitCodes.Warning;
+                logger.Warning("No backup files found");
+                return ExitCodes.Success;
             }
 
-            if (options.Cleanup)
+            result.FilesProcessed = files.Count;
+            var backupService = new BackupService(logger, false);
+
+            foreach (var file in files)
             {
-                logger.Info("Cleaning backups...");
-                backupService.CleanupAll(options.Path, options.Exclude);
+                try
+                {
+                    var backupFile = file + BackupExtension;
+                    
+                    if (!File.Exists(backupFile))
+                        continue;
+
+                    logger.Verbose("Restoring: " + file);
+
+                    File.Copy(backupFile, file, overwrite: true);
+                    
+                    if (cleanup)
+                    {
+                        File.Delete(backupFile);
+                        logger.Info($"[OK] Restored and cleaned: {Path.GetFileName(file)}");
+                    }
+                    else
+                    {
+                        logger.Info($"[OK] Restored: {Path.GetFileName(file)}");
+                    }
+                    
+                    result.FilesProcessed++;
+                }
+                catch (Exception ex)
+                {
+                    logger.Error($"Error restoring {file}: {ex.Message}");
+                    result.Errors.Add("Error " + file + ": " + ex.Message);
+                }
             }
 
-            var duration = DateTime.UtcNow - startTime;
-            logger.Info("Completed in " + duration.TotalSeconds.ToString("F1") + "s");
-
-            return ExitCodes.Success;
+            PrintSummary(result, startTime, logger);
+            
+            if (result.HasErrors)
+            {
+                logger.Error("Errors: " + result.Errors.Count);
+                return ExitCodes.CriticalError;
+            }
+            
+            return result.HasWarnings ? ExitCodes.Warning : ExitCodes.Success;
         }
         catch (Exception ex)
         {
             logger.Error("Critical error: " + ex.Message);
             return ExitCodes.CriticalError;
         }
+    }
+
+    private static void PrintSummary(OperationResult result, DateTime startTime, Logger logger)
+    {
+        var duration = DateTime.UtcNow - startTime;
+
+        logger.Info("");
+        logger.Info("Summary:");
+        logger.Info($"   Files processed: {result.FilesProcessed}");
+        logger.Info($"   Files restored: {result.FilesProcessed}");
+        logger.Info($"   Execution time: {duration.TotalSeconds:F1}s");
+
+        if (result.HasWarnings)
+            logger.Info($"   Warnings: {result.Warnings.Count}");
     }
 }

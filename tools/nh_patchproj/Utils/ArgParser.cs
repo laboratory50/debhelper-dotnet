@@ -3,85 +3,106 @@ namespace nh_patchproj.Utils;
 public static class ArgParser
 {
     private const string HelpFileName = "readme.md";
-
-    public record ParsedArgs(string? Command, Dictionary<string, string[]> Options, List<string> Remaining);
-
+    
+    // 🔹 ДОБАВЛЕНО: NoAct в record
+    public record ParsedArgs(
+        string? Command, 
+        Dictionary<string, string[]> Options, 
+        List<string> Remaining,
+        bool NoAct = false);
+    
     public static ParsedArgs Parse(string[] args)
     {
         var options = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         var remaining = new List<string>();
         string? currentKey = null;
+        string? command = null;
+        bool noAct = false;  // 🔹 ДОБАВЛЕНО
 
         for (int i = 0; i < args.Length; i++)
         {
             var arg = args[i];
+
             if (string.IsNullOrEmpty(arg)) continue;
 
-            // Ключ: --key или -k
             if (arg.StartsWith("--") || arg.StartsWith("-"))
             {
                 var key = arg.TrimStart('-');
                 
-                // Проверка: это флаг без значения?
-                bool isFlag = true;
-                
-                // Если есть следующий аргумент и он не начинается с "-"
-                if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                // 🔹 ДОБАВЛЕНО: парсинг --xpath / -x
+                if (key == "xpath" || key == "x")
                 {
-                    // Это ключ со значением
-                    isFlag = false;
+                    currentKey = key;
+                    if (!options.ContainsKey(currentKey))
+                        options[currentKey] = new List<string>();
+                    if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                        options[currentKey].Add(args[++i]);
+                    continue;
                 }
                 
+                // 🔹 ДОБАВЛЕНО: парсинг --no-act / -na
+                if (key == "no-act" || key == "na")
+                {
+                    noAct = true;
+                    continue;
+                }
+                
+                bool isFlag = true;
+                if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                {
+                    isFlag = false;
+                }
+
                 if (isFlag)
                 {
-                    // Флаг (без значения)
                     if (!options.ContainsKey(key))
                         options[key] = new List<string>();
                     options[key].Add("true");
                 }
                 else
                 {
-                    // Ключ со значением
                     currentKey = key;
                     if (!options.ContainsKey(currentKey))
                         options[currentKey] = new List<string>();
-                    i++; // Переходим к значению
-                    options[currentKey].Add(args[i]);
+                    options[currentKey].Add(args[++i]);
                 }
             }
-            // Значение для предыдущего ключа (если несколько значений)
-            else if (currentKey != null)
-            {
-                options[currentKey].Add(arg);
-            }
-            // Остальное
             else
             {
-                remaining.Add(arg);
+                if (currentKey != null)
+                {
+                    options[currentKey].Add(arg);
+                }
+                else if (command == null)
+                {
+                    command = arg;
+                }
+                else
+                {
+                    remaining.Add(arg);
+                }
             }
         }
 
-        return new ParsedArgs(
-            remaining.Count > 0 ? remaining[0] : null,
-            options.ToDictionary(kv => kv.Key, kv => kv.Value.ToArray()),
-            remaining.Skip(1).ToList()
-        );
+        var optionsDict = options.ToDictionary(k => k.Key, v => v.Value.ToArray());
+        return new ParsedArgs(command, optionsDict, remaining, noAct);  // 🔹 ПЕРЕДАТЬ noAct
     }
 
-    public static string? GetOption(ParsedArgs args, string key)
+    public static string[] GetOption(ParsedArgs args, string key)
     {
-        return args.Options.TryGetValue(key, out var v) && v.Length > 0 ? v[0] : null;
-    }
-
-    public static string[] GetOptionArray(ParsedArgs args, string key)
-    {
-        return args.Options.TryGetValue(key, out var v) ? v : Array.Empty<string>();
+        if (args.Options.ContainsKey(key))
+            return args.Options[key];
+        return Array.Empty<string>();
     }
 
     public static bool GetOptionBool(ParsedArgs args, string key)
     {
-        var v = GetOption(args, key);
-        return v != null && v != "false";
+        if (args.Options.ContainsKey(key))
+        {
+            var v = args.Options[key].FirstOrDefault();
+            return v != null && v != "false";
+        }
+        return false;
     }
 
     public static void PrintHelp()
