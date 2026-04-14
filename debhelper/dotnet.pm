@@ -24,6 +24,17 @@ sub IS_GENERATOR_BUILD_SYSTEM {
         return 0;
 }
 
+my @STANDARD_MSBUILD_FLAGS = qw(
+   -nr:false
+   --nologo
+   --disable-build-servers
+   -p:BaseOutputPath=bin
+   -p:OutputPath=bin/Release/$tfm
+   -p:PackageOutputPath=bin/Release
+   -p:ArtifactsPath=bin
+   -p:BaseIntermediateOutputPath=obj/
+);
+
 sub lib_install_dir {
         return '/usr/lib/sharedstore';
 }
@@ -123,6 +134,8 @@ sub new {
         
         $this->{upstream_version} = $version;
 
+        $this->{standard_flags} = [ map { s/\$tfm/$this->{target_framework}/r } @STANDARD_MSBUILD_FLAGS ];
+
 #        my @projects=glob($this->get_sourcepath('*.csproj'));
 #
 #        if (@projects > 1) {
@@ -155,14 +168,16 @@ sub patchproj {
         my @args = @_;
         my $patchproj = 'debian/' . lc(basename($buildfile, '.csproj'));
 
+        print "ARGS 1:\n" . Dumper(@args);
         if (-e $patchproj) {
                 verbose_print("using $patchproj");
                 push @args, make_patchproj_args($patchproj);
         }
         
         if (@args) {
+                print "ARGS 2:\n" . Dumper(@args);
                 verbose_print("patching $buildfile");
-                #restore_file_on_clean($buildfile);
+                restore_file_on_clean($buildfile);
                 $this->doit_in_sourcedir('nh_patchproj', 'clean', '--path', $buildfile, '--quiet', '--no-backup', @args);
         }
 }
@@ -190,6 +205,7 @@ sub make_patchproj_args {
 
 sub clean {
         my $this=shift;
+
         if ($this->{buildfiles}) {
                 foreach my $buildfile (@{$this->{buildfiles}}) {
                         $this->doit_in_sourcedir('rm', '-rf', get_intermediate_outputpath($buildfile));
@@ -271,10 +287,8 @@ sub msbuild_commands {
 }
 
 sub msbuild_command {
-        my $this = shift;
-        my $buildfile = shift;
-        my $step = shift;
-        my @options = @_;
+        my ($this, $buildfile, $step, @userflags) = @_;
+        my @options;
 
         #my $dir = $this->get_sourcedir();
 
@@ -283,9 +297,6 @@ sub msbuild_command {
         if ($buildfile) {
                 push @options, $buildfile;
         }
-
-        push @options, '--nologo';
-        push @options, '--disable-build-servers';
 
         if ($step eq 'restore' or $step eq 'pack') {
                 push @options, '-p:TargetFrameworks=';
@@ -310,8 +321,9 @@ sub msbuild_command {
                 }
         }
 
-        push @options, '-nr:false';
+        push @options, @{$this->{standard_flags}};
         push @options, '-v', 'n' if not $dh{QUIET};
+        push @options, @userflags;
 
         return ['dotnet', $step, @options];
 }
