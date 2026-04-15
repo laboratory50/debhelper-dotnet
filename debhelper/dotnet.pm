@@ -9,11 +9,12 @@ package Debian::Debhelper::Buildsystem::dotnet;
 use strict;
 use warnings;
 use JSON;
+use File::Spec;
 use File::Basename;
 use File::Find::Rule qw/ find rule /;
 use Data::Dumper;
 use Dpkg::Changelog::Debian;
-use Debian::Debhelper::Dh_Lib qw(%dh error verbose_print restore_file_on_clean);
+use Debian::Debhelper::Dh_Lib qw(%dh error verbose_print restore_file_on_clean qx_cmd dirname);
 use parent qw(Debian::Debhelper::Buildsystem);
 
 sub DESCRIPTION {
@@ -167,17 +168,23 @@ sub patchproj {
         my $buildfile=shift;
         my @args = @_;
         my $patchproj = 'debian/' . lc(basename($buildfile, '.csproj'));
-
-        print "ARGS 1:\n" . Dumper(@args);
+        
         if (-e $patchproj) {
                 verbose_print("using $patchproj");
                 push @args, make_patchproj_args($patchproj);
         }
         
+        print "Patch proj:\n" . Dumper(@args);
+
         if (@args) {
-                print "ARGS 2:\n" . Dumper(@args);
+                my @willpatch = qx_cmd('nh_patchproj', 'clean', '--path', $buildfile, '--quiet', '--no-act', @args);
+                foreach my $file (@willpatch) {
+                        chomp($file);
+                        # TODO: remove abs2rel
+                        restore_file_on_clean(File::Spec->abs2rel($file, $this->get_sourcedir()));
+                }
+
                 verbose_print("patching $buildfile");
-                restore_file_on_clean($buildfile);
                 $this->doit_in_sourcedir('nh_patchproj', 'clean', '--path', $buildfile, '--quiet', '--no-backup', @args);
         }
 }
@@ -192,7 +199,7 @@ sub make_patchproj_args {
                 while (<$fd>) {
                         # Пропуск строк, начинающихся с #
                         next if /^#/;
-                        chomp($_);
+                        chomp;
                         my @parts = split ' ';
 
                         push @args, '--' . shift @parts;
