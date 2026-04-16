@@ -3,26 +3,24 @@ namespace nh_patchproj.Services;
 public class Logger
 {
     private readonly bool _verbose;
-    private readonly bool _quiet;
     
     // Сделать public
     public const string SecondsSuffix = "s";
 
-    public Logger(bool verbose, bool quiet)
+    public Logger(bool verbose)
     {
         _verbose = verbose;
-        _quiet = quiet;
     }
 
     public void Info(string message)
     {
-        if (!_quiet)
+        if (_verbose)
             Console.WriteLine(message);
     }
 
     public void Warning(string message)
     {
-        if (!_quiet)
+        if (_verbose)
             Console.WriteLine($"[WARNING] {message}");
     }
 
@@ -33,7 +31,7 @@ public class Logger
 
     public void Verbose(string message)
     {
-        if (_verbose && !_quiet)
+        if (_verbose)
             Console.WriteLine($"[VERBOSE] {message}");
     }
 }

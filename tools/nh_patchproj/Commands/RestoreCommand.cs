@@ -6,21 +6,18 @@ namespace nh_patchproj.Commands;
 
 public static class RestoreCommand
 {
-    private const string BackupExtension = ".bak";
+    private const string BackupSuffix = "~";
 
     public static int Execute(ArgParser.ParsedArgs args)
     {
         var startTime = DateTime.UtcNow;
         var logger = new Logger(
-            ArgParser.GetOptionBool(args, "verbose") || ArgParser.GetOptionBool(args, "v"),
-            ArgParser.GetOptionBool(args, "quiet") || ArgParser.GetOptionBool(args, "q")
+            ArgParser.GetOptionBool(args, "verbose") || ArgParser.GetOptionBool(args, "v")
         );
         var result = new OperationResult();
 
         try
         {
-            logger.Info("DotNetProjectHelper v1.0.0 - Restore");
-            
             // 🔹 ИЗМЕНЕНИЕ: если path не указан, используем текущую директорию
             var pathOptions = ArgParser.GetOption(args, "path");
             var pOptions = ArgParser.GetOption(args, "p");
@@ -61,10 +58,8 @@ public static class RestoreCommand
             {
                 try
                 {
-                    var backupFile = file + BackupExtension;
-                    
-                    if (!File.Exists(backupFile))
-                        continue;
+                    var backupFile = file + BackupSuffix;
+                    if (!File.Exists(backupFile)) continue;
 
                     logger.Verbose("Restoring: " + file);
 
