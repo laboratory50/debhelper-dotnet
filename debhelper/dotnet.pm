@@ -9,7 +9,6 @@ package Debian::Debhelper::Buildsystem::dotnet;
 use strict;
 use warnings;
 use JSON;
-use File::Spec;
 use File::Basename;
 use File::Find::Rule qw/ find rule /;
 use Data::Dumper;
@@ -174,18 +173,16 @@ sub patchproj {
                 push @args, make_patchproj_args($patchproj);
         }
         
-        print "Patch proj:\n" . Dumper(@args);
-
         if (@args) {
-                my @willpatch = qx_cmd('nh_patchproj', 'clean', '--path', $buildfile, '--quiet', '--no-act', @args);
+                my @willpatch = qx_cmd('nh_patchproj', 'clean', '--path', $buildfile, '--no-act', @args);
                 foreach my $file (@willpatch) {
                         chomp($file);
-                        # TODO: remove abs2rel
-                        restore_file_on_clean(File::Spec->abs2rel($file, $this->get_sourcedir()));
+                        restore_file_on_clean($file);
                 }
 
                 verbose_print("patching $buildfile");
-                $this->doit_in_sourcedir('nh_patchproj', 'clean', '--path', $buildfile, '--quiet', '--no-backup', @args);
+                push @args, '--verbose' if $dh{VERBOSE};
+                $this->doit_in_sourcedir('nh_patchproj', 'clean', '--path', $buildfile, @args);
         }
 }
 
@@ -329,7 +326,7 @@ sub msbuild_command {
         }
 
         push @options, @{$this->{standard_flags}};
-        push @options, '-v', 'n' if not $dh{QUIET};
+        push @options, '-v', 'n' if $dh{VERBOSE};
         push @options, @userflags;
 
         return ['dotnet', $step, @options];
