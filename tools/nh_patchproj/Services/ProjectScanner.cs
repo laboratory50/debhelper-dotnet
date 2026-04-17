@@ -1,6 +1,5 @@
 using Microsoft.Extensions.FileSystemGlobbing;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;  // 🔹 ДОБАВЛЕНО
-using nh_patchproj.Services;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
 namespace nh_patchproj.Services;
 
@@ -16,12 +15,7 @@ public class ProjectScanner
 
         if (File.Exists(path))
         {
-            if (path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) ||
-                path.EndsWith(".props", StringComparison.OrdinalIgnoreCase) ||
-                path.EndsWith(".targets", StringComparison.OrdinalIgnoreCase))
-            {
-                files.Add(Path.GetFullPath(path));
-            }
+            files.Add(Path.GetFullPath(path));
             return files;
         }
 
@@ -39,7 +33,7 @@ public class ProjectScanner
         foreach (var pattern in excludePatterns)
             matcher.AddExclude(pattern);
 
-        var results = matcher.Execute(new DirectoryInfoWrapper(new DirectoryInfo(path)));  // 🔹 ТЕПЕРЬ РАБОТАЕТ
+        var results = matcher.Execute(new DirectoryInfoWrapper(new DirectoryInfo(path)));
 
         foreach (var file in results.Files)
         {
