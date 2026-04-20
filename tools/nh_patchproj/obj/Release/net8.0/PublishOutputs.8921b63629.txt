@@ -1,9 +1,0 @@
-/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/bin/Release/net8.0/publish/nh_patchproj
-/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/bin/Release/net8.0/publish/Resources/readme.md
-/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/bin/Release/net8.0/publish/nh_patchproj.dll
-/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/bin/Release/net8.0/publish/nh_patchproj.deps.json
-/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/bin/Release/net8.0/publish/nh_patchproj.runtimeconfig.json
-/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/bin/Release/net8.0/publish/nh_patchproj.dll.config
-/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/bin/Release/net8.0/publish/nh_patchproj.pdb
-/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/bin/Release/net8.0/publish/Microsoft.Build.Locator.dll
-/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/bin/Release/net8.0/publish/Microsoft.Extensions.FileSystemGlobbing.dll
