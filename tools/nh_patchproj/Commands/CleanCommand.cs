@@ -40,7 +40,8 @@ public static class CleanCommand
             var tagInclude = ArgParser.GetOption(args, "tag-include").Concat(ArgParser.GetOption(args, "ti")).ToArray();
             var xpaths = ArgParser.GetOption(args, "xpath").Concat(ArgParser.GetOption(args, "x")).ToArray();
 
-            var backupService = new BackupService(logger, !ArgParser.GetOptionBool(args, "no-backup") && !args.NoAct);
+            bool enableBackup = ArgParser.GetOptionBool(args, "backup") || ArgParser.GetOptionBool(args, "b");
+            var backupService = new BackupService(logger, enableBackup && !ArgParser.GetOptionBool(args, "dry-run"));
             var packageRemover = new PackageRemover(logger);
             var tagRemover = new TagRemover(logger);
 

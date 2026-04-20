@@ -1,0 +1,306 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "nh_patchproj/1.0.1": {
+        "dependencies": {
+          "Microsoft.Build": "17.3.2",
+          "Microsoft.Build.Locator": "1.6.10",
+          "Microsoft.Extensions.FileSystemGlobbing": "8.0.0"
+        },
+        "runtime": {
+          "nh_patchproj.dll": {}
+        }
+      },
+      "Microsoft.Build/17.3.2": {
+        "dependencies": {
+          "Microsoft.Build.Framework": "17.3.2",
+          "Microsoft.NET.StringTools": "17.3.2",
+          "System.Collections.Immutable": "6.0.0",
+          "System.Configuration.ConfigurationManager": "6.0.0",
+          "System.Reflection.Metadata": "6.0.0",
+          "System.Reflection.MetadataLoadContext": "6.0.0",
+          "System.Security.Principal.Windows": "5.0.0",
+          "System.Text.Encoding.CodePages": "6.0.0",
+          "System.Text.Json": "6.0.0",
+          "System.Threading.Tasks.Dataflow": "6.0.0"
+        }
+      },
+      "Microsoft.Build.Framework/17.3.2": {
+        "dependencies": {
+          "System.Security.Permissions": "6.0.0"
+        }
+      },
+      "Microsoft.Build.Locator/1.6.10": {
+        "runtime": {
+          "lib/net8.0/Microsoft.Build.Locator.dll": {
+            "assemblyVersion": "1.6.10.0",
+            "fileVersion": "1.6.10.0"
+          }
+        }
+      },
+      "Microsoft.Extensions.FileSystemGlobbing/8.0.0": {
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.FileSystemGlobbing.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.2426.7010"
+          }
+        }
+      },
+      "Microsoft.NET.StringTools/17.3.2": {
+        "dependencies": {
+          "System.Memory": "4.5.5",
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
+      },
+      "Microsoft.Win32.SystemEvents/6.0.0": {},
+      "System.Buffers/4.5.1": {},
+      "System.Collections.Immutable/6.0.0": {
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
+      },
+      "System.Configuration.ConfigurationManager/6.0.0": {
+        "dependencies": {
+          "System.Security.Cryptography.ProtectedData": "6.0.0",
+          "System.Security.Permissions": "6.0.0"
+        }
+      },
+      "System.Drawing.Common/6.0.0": {
+        "dependencies": {
+          "Microsoft.Win32.SystemEvents": "6.0.0"
+        }
+      },
+      "System.Memory/4.5.5": {
+        "dependencies": {
+          "System.Buffers": "4.5.1",
+          "System.Numerics.Vectors": "4.4.0",
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
+      },
+      "System.Numerics.Vectors/4.4.0": {},
+      "System.Reflection.Metadata/6.0.0": {
+        "dependencies": {
+          "System.Collections.Immutable": "6.0.0"
+        }
+      },
+      "System.Reflection.MetadataLoadContext/6.0.0": {
+        "dependencies": {
+          "System.Collections.Immutable": "6.0.0",
+          "System.Reflection.Metadata": "6.0.0"
+        }
+      },
+      "System.Runtime.CompilerServices.Unsafe/6.0.0": {},
+      "System.Security.AccessControl/6.0.0": {},
+      "System.Security.Cryptography.ProtectedData/6.0.0": {},
+      "System.Security.Permissions/6.0.0": {
+        "dependencies": {
+          "System.Security.AccessControl": "6.0.0",
+          "System.Windows.Extensions": "6.0.0"
+        }
+      },
+      "System.Security.Principal.Windows/5.0.0": {},
+      "System.Text.Encoding.CodePages/6.0.0": {
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
+      },
+      "System.Text.Encodings.Web/6.0.0": {
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
+      },
+      "System.Text.Json/6.0.0": {
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0",
+          "System.Text.Encodings.Web": "6.0.0"
+        }
+      },
+      "System.Threading.Tasks.Dataflow/6.0.0": {},
+      "System.Windows.Extensions/6.0.0": {
+        "dependencies": {
+          "System.Drawing.Common": "6.0.0"
+        }
+      }
+    }
+  },
+  "libraries": {
+    "nh_patchproj/1.0.1": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Build/17.3.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3X4E8Z9Ruv6XOxLpZ1T2vqF7wDFDip2kQBbI1R4G/1o",
+      "path": "microsoft.build/17.3.2",
+      "hashPath": "microsoft.build.17.3.2.nupkg.sha512"
+    },
+    "Microsoft.Build.Framework/17.3.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VC8LRnbD1YvoLkKzYI/Isq6c0wVlGiYyGb06cdP3ucI",
+      "path": "microsoft.build.framework/17.3.2",
+      "hashPath": "microsoft.build.framework.17.3.2.nupkg.sha512"
+    },
+    "Microsoft.Build.Locator/1.6.10": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-sfVU3qIZeT7H68ifj9dV8PP3KdoCn6htDWYhAn7YV1c",
+      "path": "microsoft.build.locator/1.6.10",
+      "hashPath": "microsoft.build.locator.1.6.10.nupkg.sha512"
+    },
+    "Microsoft.Extensions.FileSystemGlobbing/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-8eXRuITzKWNNtC2ANyrVHjvteR0AFxQZ7mH+aF1z2Po",
+      "path": "microsoft.extensions.filesystemglobbing/8.0.0",
+      "hashPath": "microsoft.extensions.filesystemglobbing.8.0.0.nupkg.sha512"
+    },
+    "Microsoft.NET.StringTools/17.3.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-jYiqaEsJ4m+++RDeju3BngJuc7yN+mjnK0eDCc5YceU",
+      "path": "microsoft.net.stringtools/17.3.2",
+      "hashPath": "microsoft.net.stringtools.17.3.2.nupkg.sha512"
+    },
+    "Microsoft.Win32.SystemEvents/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lcfZXas+cFFOnhiItr7OTqYUDs8UjvwgJTuzwGMUMuQ",
+      "path": "microsoft.win32.systemevents/6.0.0",
+      "hashPath": "microsoft.win32.systemevents.6.0.0.nupkg.sha512"
+    },
+    "System.Buffers/4.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-cYpUlG8ZfJauLw/QG+OfzuCIjS3nYrmHs4XjAsVg1hc",
+      "path": "system.buffers/4.5.1",
+      "hashPath": "system.buffers.4.5.1.nupkg.sha512"
+    },
+    "System.Collections.Immutable/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-JcKhPj0M6sjJQXpv5uG2z6GUtXsn6JfQmssiJ/YJ0og",
+      "path": "system.collections.immutable/6.0.0",
+      "hashPath": "system.collections.immutable.6.0.0.nupkg.sha512"
+    },
+    "System.Configuration.ConfigurationManager/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-yKLDNObEkVYDS1IaX7xSfnx8uwqlHqFS1LpVppT4zoI",
+      "path": "system.configuration.configurationmanager/6.0.0",
+      "hashPath": "system.configuration.configurationmanager.6.0.0.nupkg.sha512"
+    },
+    "System.Drawing.Common/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-wlzDzOemwmmwgTTsfFJMIyVg/ttHTpZYxPVbkV1dxZI",
+      "path": "system.drawing.common/6.0.0",
+      "hashPath": "system.drawing.common.6.0.0.nupkg.sha512"
+    },
+    "System.Memory/4.5.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-1tTBbdID4Mf06tp3Wn0/qfB/Ye9shXSPxcknhg4KuYY",
+      "path": "system.memory/4.5.5",
+      "hashPath": "system.memory.4.5.5.nupkg.sha512"
+    },
+    "System.Numerics.Vectors/4.4.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-5MMKcpLIB9uoPIl2E/6s5BTcleFUu8y+ENfeTJufYxU",
+      "path": "system.numerics.vectors/4.4.0",
+      "hashPath": "system.numerics.vectors.4.4.0.nupkg.sha512"
+    },
+    "System.Reflection.Metadata/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-prp/GwaO4/R8U/jTj3S/Q3cknmIPv8JS/Hw7wjeiU2E",
+      "path": "system.reflection.metadata/6.0.0",
+      "hashPath": "system.reflection.metadata.6.0.0.nupkg.sha512"
+    },
+    "System.Reflection.MetadataLoadContext/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-55ujo5B2DbSyDZ+/WT/D+T2775ynau5YOHGijy3rN7Y",
+      "path": "system.reflection.metadataloadcontext/6.0.0",
+      "hashPath": "system.reflection.metadataloadcontext.6.0.0.nupkg.sha512"
+    },
+    "System.Runtime.CompilerServices.Unsafe/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-BCeEljnxWqM2GuS5zA8SZ+k+2LumFfL7NFuvLBfQfPc",
+      "path": "system.runtime.compilerservices.unsafe/6.0.0",
+      "hashPath": "system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
+    },
+    "System.Security.AccessControl/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-I11GqFYEyU7Ui+JfWFW4NgaNIdTfTxmGdTsyvVlVk/Y",
+      "path": "system.security.accesscontrol/6.0.0",
+      "hashPath": "system.security.accesscontrol.6.0.0.nupkg.sha512"
+    },
+    "System.Security.Cryptography.ProtectedData/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-tmtOp1ysEiJ3QNSKNS8ZkQ7ug9+dwohWFP68keEuPms",
+      "path": "system.security.cryptography.protecteddata/6.0.0",
+      "hashPath": "system.security.cryptography.protecteddata.6.0.0.nupkg.sha512"
+    },
+    "System.Security.Permissions/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-YkmASUEfVC3o/NiCYj7s8oM/g9bvDg1iBj+HVqArdbo",
+      "path": "system.security.permissions/6.0.0",
+      "hashPath": "system.security.permissions.6.0.0.nupkg.sha512"
+    },
+    "System.Security.Principal.Windows/5.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-TTZ7n8JlhiAEpNg57nL1sqfZArPhCDvI/YpvwO3m/50",
+      "path": "system.security.principal.windows/5.0.0",
+      "hashPath": "system.security.principal.windows.5.0.0.nupkg.sha512"
+    },
+    "System.Text.Encoding.CodePages/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-qTHJqNQwaIRmyvl5rG2ucN4rMFVfY/d0l726wS4LH7Q",
+      "path": "system.text.encoding.codepages/6.0.0",
+      "hashPath": "system.text.encoding.codepages.6.0.0.nupkg.sha512"
+    },
+    "System.Text.Encodings.Web/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-CTE/ayYKOMvQcSOiMXSFhbwa4T6XkMWt4GvEO1Yv8rw",
+      "path": "system.text.encodings.web/6.0.0",
+      "hashPath": "system.text.encodings.web.6.0.0.nupkg.sha512"
+    },
+    "System.Text.Json/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-LYOudANAQ9FsdCQb7uRQtD1GBhaWcPqiLlkhkdzil0A",
+      "path": "system.text.json/6.0.0",
+      "hashPath": "system.text.json.6.0.0.nupkg.sha512"
+    },
+    "System.Threading.Tasks.Dataflow/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-i0uVcpsT3KxFqZAXLryy0yqRHeKmcyL/944leUgzJOM",
+      "path": "system.threading.tasks.dataflow/6.0.0",
+      "hashPath": "system.threading.tasks.dataflow.6.0.0.nupkg.sha512"
+    },
+    "System.Windows.Extensions/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-fpDjbAy2eyOuOQ7VK8aHjcxxB57FxFRp9n0oTeCo8uY",
+      "path": "system.windows.extensions/6.0.0",
+      "hashPath": "system.windows.extensions.6.0.0.nupkg.sha512"
+    }
+  }
+}

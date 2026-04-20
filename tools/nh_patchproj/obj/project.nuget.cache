@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "dgSpecHash": "CQSAvczx27gczV5Dw+i0HxtY+s70nBcOirB7XDT2fkNYs0mnWHlPBe247oPrzWQRb2ZTxCwk0dVLmls9X9mOKA==",
+  "success": true,
+  "projectFilePath": "/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/nh_patchproj.csproj",
+  "expectedPackageFiles": [
+    "/usr/lib/mono/sdk/8.0.124/nuget/microsoft.build/17.3.2/microsoft.build.17.3.2.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/microsoft.build.framework/17.3.2/microsoft.build.framework.17.3.2.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/microsoft.build.locator/1.6.10/microsoft.build.locator.1.6.10.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/microsoft.extensions.filesystemglobbing/8.0.0/microsoft.extensions.filesystemglobbing.8.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/microsoft.net.stringtools/17.3.2/microsoft.net.stringtools.17.3.2.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/microsoft.win32.systemevents/6.0.0/microsoft.win32.systemevents.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.buffers/4.5.1/system.buffers.4.5.1.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.collections.immutable/6.0.0/system.collections.immutable.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.configuration.configurationmanager/6.0.0/system.configuration.configurationmanager.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.drawing.common/6.0.0/system.drawing.common.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.memory/4.5.5/system.memory.4.5.5.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.numerics.vectors/4.4.0/system.numerics.vectors.4.4.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.reflection.metadata/6.0.0/system.reflection.metadata.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.reflection.metadataloadcontext/6.0.0/system.reflection.metadataloadcontext.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.security.accesscontrol/6.0.0/system.security.accesscontrol.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.security.cryptography.protecteddata/6.0.0/system.security.cryptography.protecteddata.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.security.permissions/6.0.0/system.security.permissions.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.security.principal.windows/5.0.0/system.security.principal.windows.5.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.text.encoding.codepages/6.0.0/system.text.encoding.codepages.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.text.encodings.web/6.0.0/system.text.encodings.web.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.text.json/6.0.0/system.text.json.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.threading.tasks.dataflow/6.0.0/system.threading.tasks.dataflow.6.0.0.nupkg.sha512",
+    "/usr/lib/mono/sdk/8.0.124/nuget/system.windows.extensions/6.0.0/system.windows.extensions.6.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

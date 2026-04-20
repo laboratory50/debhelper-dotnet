@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="/usr/lib/mono/sdk/8.0.124/nuget/microsoft.build.locator/1.6.10/build/Microsoft.Build.Locator.targets" Condition="Exists('/usr/lib/mono/sdk/8.0.124/nuget/microsoft.build.locator/1.6.10/build/Microsoft.Build.Locator.targets')" />
+  </ImportGroup>
+</Project>

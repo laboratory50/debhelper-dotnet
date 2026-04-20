@@ -1,0 +1,664 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0": {
+      "Microsoft.Build/17.3.2": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Build.Framework": "17.3.2",
+          "Microsoft.NET.StringTools": "17.3.2",
+          "System.Collections.Immutable": "6.0.0",
+          "System.Configuration.ConfigurationManager": "6.0.0",
+          "System.Reflection.Metadata": "6.0.0",
+          "System.Reflection.MetadataLoadContext": "6.0.0",
+          "System.Security.Principal.Windows": "5.0.0",
+          "System.Text.Encoding.CodePages": "6.0.0",
+          "System.Text.Json": "6.0.0",
+          "System.Threading.Tasks.Dataflow": "6.0.0"
+        },
+        "compile": {
+          "ref/net6.0/Microsoft.Build.dll": {}
+        }
+      },
+      "Microsoft.Build.Framework/17.3.2": {
+        "type": "package",
+        "dependencies": {
+          "System.Security.Permissions": "6.0.0"
+        },
+        "compile": {
+          "ref/net6.0/Microsoft.Build.Framework.dll": {}
+        }
+      },
+      "Microsoft.Build.Locator/1.6.10": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Microsoft.Build.Locator.dll": {}
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Build.Locator.dll": {}
+        },
+        "build": {
+          "build/Microsoft.Build.Locator.props": {},
+          "build/Microsoft.Build.Locator.targets": {}
+        }
+      },
+      "Microsoft.Extensions.FileSystemGlobbing/8.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Microsoft.Extensions.FileSystemGlobbing.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.FileSystemGlobbing.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net8.0/_._": {}
+        }
+      },
+      "Microsoft.NET.StringTools/17.3.2": {
+        "type": "package",
+        "dependencies": {
+          "System.Memory": "4.5.5",
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        },
+        "compile": {
+          "ref/net6.0/Microsoft.NET.StringTools.dll": {}
+        }
+      },
+      "Microsoft.Win32.SystemEvents/6.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/Microsoft.Win32.SystemEvents.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Buffers/4.5.1": {
+        "type": "package",
+        "compile": {
+          "ref/netstandard2.0/System.Buffers.dll": {}
+        }
+      },
+      "System.Collections.Immutable/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Configuration.ConfigurationManager/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Security.Cryptography.ProtectedData": "6.0.0",
+          "System.Security.Permissions": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/System.Configuration.ConfigurationManager.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Drawing.Common/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Win32.SystemEvents": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/System.Drawing.Common.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Memory/4.5.5": {
+        "type": "package",
+        "dependencies": {
+          "System.Buffers": "4.5.1",
+          "System.Numerics.Vectors": "4.4.0",
+          "System.Runtime.CompilerServices.Unsafe": "4.5.3"
+        },
+        "compile": {
+          "lib/netstandard2.0/System.Memory.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/_._": {}
+        }
+      },
+      "System.Numerics.Vectors/4.4.0": {
+        "type": "package",
+        "compile": {
+          "ref/netstandard2.0/System.Numerics.Vectors.dll": {}
+        }
+      },
+      "System.Reflection.Metadata/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections.Immutable": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Reflection.MetadataLoadContext/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections.Immutable": "6.0.0",
+          "System.Reflection.Metadata": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/System.Reflection.MetadataLoadContext.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Runtime.CompilerServices.Unsafe/6.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/System.Runtime.CompilerServices.Unsafe.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Security.AccessControl/6.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/System.Security.AccessControl.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Security.Cryptography.ProtectedData/6.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/System.Security.Cryptography.ProtectedData.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Security.Permissions/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Security.AccessControl": "6.0.0",
+          "System.Windows.Extensions": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/System.Security.Permissions.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Security.Principal.Windows/5.0.0": {
+        "type": "package",
+        "compile": {
+          "ref/netcoreapp3.0/System.Security.Principal.Windows.dll": {}
+        }
+      },
+      "System.Text.Encoding.CodePages/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/System.Text.Encoding.CodePages.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Text.Encodings.Web/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/System.Text.Encodings.Web.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Text.Json/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0",
+          "System.Text.Encodings.Web": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/System.Text.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Threading.Tasks.Dataflow/6.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/System.Threading.Tasks.Dataflow.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      },
+      "System.Windows.Extensions/6.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Drawing.Common": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/System.Windows.Extensions.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/_._": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.Build/17.3.2": {
+      "sha512": "3X4E8Z9Ruv6XOxLpZ1T2vqF7wDFDip2kQBbI1R4G/1o",
+      "type": "package",
+      "path": "microsoft.build/17.3.2",
+      "files": [
+        ".nupkg.metadata",
+        "Microsoft.Build.nuspec",
+        "microsoft.build.17.3.2.nupkg.sha512",
+        "ref/net6.0/Microsoft.Build.dll"
+      ]
+    },
+    "Microsoft.Build.Framework/17.3.2": {
+      "sha512": "VC8LRnbD1YvoLkKzYI/Isq6c0wVlGiYyGb06cdP3ucI",
+      "type": "package",
+      "path": "microsoft.build.framework/17.3.2",
+      "files": [
+        ".nupkg.metadata",
+        "Microsoft.Build.Framework.nuspec",
+        "microsoft.build.framework.17.3.2.nupkg.sha512",
+        "ref/net6.0/Microsoft.Build.Framework.dll",
+        "ref/netstandard2.0/Microsoft.Build.Framework.dll"
+      ]
+    },
+    "Microsoft.Build.Locator/1.6.10": {
+      "sha512": "sfVU3qIZeT7H68ifj9dV8PP3KdoCn6htDWYhAn7YV1c",
+      "type": "package",
+      "path": "microsoft.build.locator/1.6.10",
+      "files": [
+        ".nupkg.metadata",
+        "MSBuild-NuGet-Icon.png",
+        "Microsoft.Build.Locator.nuspec",
+        "build/Microsoft.Build.Locator.props",
+        "build/Microsoft.Build.Locator.targets",
+        "lib/net7.0/Microsoft.Build.Locator.dll",
+        "lib/net8.0/Microsoft.Build.Locator.dll",
+        "microsoft.build.locator.1.6.10.nupkg.sha512"
+      ]
+    },
+    "Microsoft.Extensions.FileSystemGlobbing/8.0.0": {
+      "sha512": "8eXRuITzKWNNtC2ANyrVHjvteR0AFxQZ7mH+aF1z2Po",
+      "type": "package",
+      "path": "microsoft.extensions.filesystemglobbing/8.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "Icon.png",
+        "LICENSE.TXT",
+        "Microsoft.Extensions.FileSystemGlobbing.nuspec",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net8.0/_._",
+        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.FileSystemGlobbing.targets",
+        "lib/net8.0/Microsoft.Extensions.FileSystemGlobbing.dll",
+        "lib/net8.0/Microsoft.Extensions.FileSystemGlobbing.xml",
+        "lib/netstandard2.0/Microsoft.Extensions.FileSystemGlobbing.dll",
+        "lib/netstandard2.0/Microsoft.Extensions.FileSystemGlobbing.xml",
+        "microsoft.extensions.filesystemglobbing.8.0.0.nupkg.sha512",
+        "useSharedDesignerContext.txt"
+      ]
+    },
+    "Microsoft.NET.StringTools/17.3.2": {
+      "sha512": "jYiqaEsJ4m+++RDeju3BngJuc7yN+mjnK0eDCc5YceU",
+      "type": "package",
+      "path": "microsoft.net.stringtools/17.3.2",
+      "files": [
+        ".nupkg.metadata",
+        "Microsoft.NET.StringTools.nuspec",
+        "microsoft.net.stringtools.17.3.2.nupkg.sha512",
+        "ref/net6.0/Microsoft.NET.StringTools.dll",
+        "ref/netstandard2.0/Microsoft.NET.StringTools.dll"
+      ]
+    },
+    "Microsoft.Win32.SystemEvents/6.0.0": {
+      "sha512": "lcfZXas+cFFOnhiItr7OTqYUDs8UjvwgJTuzwGMUMuQ",
+      "type": "package",
+      "path": "microsoft.win32.systemevents/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "Microsoft.Win32.SystemEvents.nuspec",
+        "lib/net6.0/Microsoft.Win32.SystemEvents.dll",
+        "lib/netstandard2.0/Microsoft.Win32.SystemEvents.dll",
+        "microsoft.win32.systemevents.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Buffers/4.5.1": {
+      "sha512": "cYpUlG8ZfJauLw/QG+OfzuCIjS3nYrmHs4XjAsVg1hc",
+      "type": "package",
+      "path": "system.buffers/4.5.1",
+      "files": [
+        ".nupkg.metadata",
+        "System.Buffers.nuspec",
+        "ref/netstandard1.1/System.Buffers.dll",
+        "ref/netstandard2.0/System.Buffers.dll",
+        "system.buffers.4.5.1.nupkg.sha512"
+      ]
+    },
+    "System.Collections.Immutable/6.0.0": {
+      "sha512": "JcKhPj0M6sjJQXpv5uG2z6GUtXsn6JfQmssiJ/YJ0og",
+      "type": "package",
+      "path": "system.collections.immutable/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Collections.Immutable.nuspec",
+        "lib/net6.0/System.Collections.Immutable.dll",
+        "lib/netstandard2.0/System.Collections.Immutable.dll",
+        "system.collections.immutable.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Configuration.ConfigurationManager/6.0.0": {
+      "sha512": "yKLDNObEkVYDS1IaX7xSfnx8uwqlHqFS1LpVppT4zoI",
+      "type": "package",
+      "path": "system.configuration.configurationmanager/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Configuration.ConfigurationManager.nuspec",
+        "lib/net6.0/System.Configuration.ConfigurationManager.dll",
+        "lib/netstandard2.0/System.Configuration.ConfigurationManager.dll",
+        "system.configuration.configurationmanager.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Drawing.Common/6.0.0": {
+      "sha512": "wlzDzOemwmmwgTTsfFJMIyVg/ttHTpZYxPVbkV1dxZI",
+      "type": "package",
+      "path": "system.drawing.common/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Drawing.Common.nuspec",
+        "lib/net6.0/System.Drawing.Common.dll",
+        "lib/netstandard2.0/System.Drawing.Common.dll",
+        "system.drawing.common.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Memory/4.5.5": {
+      "sha512": "1tTBbdID4Mf06tp3Wn0/qfB/Ye9shXSPxcknhg4KuYY",
+      "type": "package",
+      "path": "system.memory/4.5.5",
+      "files": [
+        ".nupkg.metadata",
+        "System.Memory.nuspec",
+        "lib/netstandard1.1/System.Memory.dll",
+        "lib/netstandard2.0/System.Memory.dll",
+        "system.memory.4.5.5.nupkg.sha512"
+      ]
+    },
+    "System.Numerics.Vectors/4.4.0": {
+      "sha512": "5MMKcpLIB9uoPIl2E/6s5BTcleFUu8y+ENfeTJufYxU",
+      "type": "package",
+      "path": "system.numerics.vectors/4.4.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Numerics.Vectors.nuspec",
+        "ref/netstandard1.0/System.Numerics.Vectors.dll",
+        "ref/netstandard2.0/System.Numerics.Vectors.dll",
+        "system.numerics.vectors.4.4.0.nupkg.sha512"
+      ]
+    },
+    "System.Reflection.Metadata/6.0.0": {
+      "sha512": "prp/GwaO4/R8U/jTj3S/Q3cknmIPv8JS/Hw7wjeiU2E",
+      "type": "package",
+      "path": "system.reflection.metadata/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Reflection.Metadata.nuspec",
+        "lib/net6.0/System.Reflection.Metadata.dll",
+        "lib/netstandard2.0/System.Reflection.Metadata.dll",
+        "system.reflection.metadata.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Reflection.MetadataLoadContext/6.0.0": {
+      "sha512": "55ujo5B2DbSyDZ+/WT/D+T2775ynau5YOHGijy3rN7Y",
+      "type": "package",
+      "path": "system.reflection.metadataloadcontext/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Reflection.MetadataLoadContext.nuspec",
+        "lib/net6.0/System.Reflection.MetadataLoadContext.dll",
+        "lib/netstandard2.0/System.Reflection.MetadataLoadContext.dll",
+        "system.reflection.metadataloadcontext.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Runtime.CompilerServices.Unsafe/6.0.0": {
+      "sha512": "BCeEljnxWqM2GuS5zA8SZ+k+2LumFfL7NFuvLBfQfPc",
+      "type": "package",
+      "path": "system.runtime.compilerservices.unsafe/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Runtime.CompilerServices.Unsafe.nuspec",
+        "lib/net6.0/System.Runtime.CompilerServices.Unsafe.dll",
+        "lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll",
+        "system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Security.AccessControl/6.0.0": {
+      "sha512": "I11GqFYEyU7Ui+JfWFW4NgaNIdTfTxmGdTsyvVlVk/Y",
+      "type": "package",
+      "path": "system.security.accesscontrol/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Security.AccessControl.nuspec",
+        "lib/net6.0/System.Security.AccessControl.dll",
+        "lib/netstandard2.0/System.Security.AccessControl.dll",
+        "system.security.accesscontrol.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Security.Cryptography.ProtectedData/6.0.0": {
+      "sha512": "tmtOp1ysEiJ3QNSKNS8ZkQ7ug9+dwohWFP68keEuPms",
+      "type": "package",
+      "path": "system.security.cryptography.protecteddata/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Security.Cryptography.ProtectedData.nuspec",
+        "lib/net6.0/System.Security.Cryptography.ProtectedData.dll",
+        "lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll",
+        "system.security.cryptography.protecteddata.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Security.Permissions/6.0.0": {
+      "sha512": "YkmASUEfVC3o/NiCYj7s8oM/g9bvDg1iBj+HVqArdbo",
+      "type": "package",
+      "path": "system.security.permissions/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Security.Permissions.nuspec",
+        "lib/net6.0/System.Security.Permissions.dll",
+        "lib/netstandard2.0/System.Security.Permissions.dll",
+        "system.security.permissions.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Security.Principal.Windows/5.0.0": {
+      "sha512": "TTZ7n8JlhiAEpNg57nL1sqfZArPhCDvI/YpvwO3m/50",
+      "type": "package",
+      "path": "system.security.principal.windows/5.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Security.Principal.Windows.nuspec",
+        "ref/netcoreapp3.0/System.Security.Principal.Windows.dll",
+        "ref/netstandard1.3/System.Security.Principal.Windows.dll",
+        "ref/netstandard2.0/System.Security.Principal.Windows.dll",
+        "system.security.principal.windows.5.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Text.Encoding.CodePages/6.0.0": {
+      "sha512": "qTHJqNQwaIRmyvl5rG2ucN4rMFVfY/d0l726wS4LH7Q",
+      "type": "package",
+      "path": "system.text.encoding.codepages/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Text.Encoding.CodePages.nuspec",
+        "lib/net6.0/System.Text.Encoding.CodePages.dll",
+        "lib/netstandard2.0/System.Text.Encoding.CodePages.dll",
+        "system.text.encoding.codepages.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Text.Encodings.Web/6.0.0": {
+      "sha512": "CTE/ayYKOMvQcSOiMXSFhbwa4T6XkMWt4GvEO1Yv8rw",
+      "type": "package",
+      "path": "system.text.encodings.web/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Text.Encodings.Web.nuspec",
+        "lib/net6.0/System.Text.Encodings.Web.dll",
+        "lib/netstandard2.0/System.Text.Encodings.Web.dll",
+        "system.text.encodings.web.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Text.Json/6.0.0": {
+      "sha512": "LYOudANAQ9FsdCQb7uRQtD1GBhaWcPqiLlkhkdzil0A",
+      "type": "package",
+      "path": "system.text.json/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Text.Json.nuspec",
+        "lib/net6.0/System.Text.Json.dll",
+        "lib/netstandard2.0/System.Text.Json.dll",
+        "system.text.json.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Threading.Tasks.Dataflow/6.0.0": {
+      "sha512": "i0uVcpsT3KxFqZAXLryy0yqRHeKmcyL/944leUgzJOM",
+      "type": "package",
+      "path": "system.threading.tasks.dataflow/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Threading.Tasks.Dataflow.nuspec",
+        "lib/net6.0/System.Threading.Tasks.Dataflow.dll",
+        "lib/netstandard2.0/System.Threading.Tasks.Dataflow.dll",
+        "lib/netstandard2.1/System.Threading.Tasks.Dataflow.dll",
+        "system.threading.tasks.dataflow.6.0.0.nupkg.sha512"
+      ]
+    },
+    "System.Windows.Extensions/6.0.0": {
+      "sha512": "fpDjbAy2eyOuOQ7VK8aHjcxxB57FxFRp9n0oTeCo8uY",
+      "type": "package",
+      "path": "system.windows.extensions/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        "System.Windows.Extensions.nuspec",
+        "lib/net6.0/System.Windows.Extensions.dll",
+        "system.windows.extensions.6.0.0.nupkg.sha512"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0": [
+      "Microsoft.Build >= 17.3.2",
+      "Microsoft.Build.Locator >= 1.6.10",
+      "Microsoft.Extensions.FileSystemGlobbing >= 8.0.0"
+    ]
+  },
+  "packageFolders": {
+    "/home/dnasledov/.nuget/packages/": {},
+    "/usr/lib/mono/sdk/8.0.124/nuget": {},
+    "/usr/lib/nuget": {}
+  },
+  "project": {
+    "version": "1.0.1",
+    "restore": {
+      "projectUniqueName": "/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/nh_patchproj.csproj",
+      "projectName": "nh_patchproj",
+      "projectPath": "/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/nh_patchproj.csproj",
+      "packagesPath": "/home/dnasledov/.nuget/packages/",
+      "outputPath": "/home/dnasledov/DebHelperV2/debhelper-dotnet/tools/nh_patchproj/obj/",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "/usr/lib/mono/sdk/8.0.124/nuget",
+        "/usr/lib/nuget"
+      ],
+      "configFilePaths": [
+        "/home/dnasledov/.nuget/NuGet/NuGet.Config",
+        "/etc/opt/NuGet/Config/nuget.config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0"
+      ],
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "noWarn": [
+          "NU3018",
+          "NU3028",
+          "NU3037",
+          "NU3042"
+        ],
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net8.0": {
+        "targetAlias": "net8.0",
+        "dependencies": {
+          "Microsoft.Build": {
+            "include": "Compile, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+            "target": "Package",
+            "version": "[17.3.2, )"
+          },
+          "Microsoft.Build.Locator": {
+            "target": "Package",
+            "version": "[1.6.10, )"
+          },
+          "Microsoft.Extensions.FileSystemGlobbing": {
+            "target": "Package",
+            "version": "[8.0.0, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "/usr/lib/mono/sdk/8.0.124/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
