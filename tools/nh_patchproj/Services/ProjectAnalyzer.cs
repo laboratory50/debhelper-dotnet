@@ -10,13 +10,12 @@ public static class ProjectAnalyzer
     /// Используется исключительно для режима --no-act.
     /// </summary>
     public static bool WouldModify(ProjectRootElement project,
-                                   string[] removePackages, string[] removePackageRegex,
-                                   string[] removeTags, string[] tagIncludes, string[] xpaths)
+        string[] removePackages, string[] removePackageRegex,
+        string[] removeTags, string[] tagIncludes, string[] xpaths)
     {
         // 1. Пакеты
         var packages = project.Items.Where(i =>
             i.ItemType is "PackageReference" or "PackageVersion" or "GlobalPackageReference");
-
         foreach (var pkg in packages)
         {
             if (removePackages.Contains(pkg.Include, StringComparer.OrdinalIgnoreCase)) return true;
@@ -26,15 +25,20 @@ public static class ProjectAnalyzer
         // 2. Теги и элементы
         foreach (var tagName in removeTags)
         {
-            var items = project.Items.Where(i => i.ItemType.Equals(tagName, StringComparison.OrdinalIgnoreCase)).ToList();
-            if (tagIncludes.Length == 0 && items.Count > 0) return true;
-            if (items.Any(i => tagIncludes.Any(ti => i.Include.Contains(ti, StringComparison.OrdinalIgnoreCase)))) return true;
+            if (project.Properties.Any(p =>
+                p.Name.Equals(tagName, StringComparison.OrdinalIgnoreCase) &&
+                (tagIncludes.Length == 0 || tagIncludes.Any(ti => p.Value.Contains(ti, StringComparison.OrdinalIgnoreCase)))))
+                return true;
+
+            if (project.Items.Any(i =>
+                i.ItemType.Equals(tagName, StringComparison.OrdinalIgnoreCase) &&
+                (tagIncludes.Length == 0 || tagIncludes.Any(ti => i.Include.Contains(ti, StringComparison.OrdinalIgnoreCase)))))
+                return true;
 
             if (tagName.Equals("Target", StringComparison.OrdinalIgnoreCase))
             {
                 if (project.Targets.Any(t => tagIncludes.Length == 0 || tagIncludes.Any(ti => t.Name.Contains(ti, StringComparison.OrdinalIgnoreCase)))) return true;
             }
-
             if (tagName.Equals("Exec", StringComparison.OrdinalIgnoreCase))
             {
                 foreach (var t in project.Targets)
@@ -42,36 +46,43 @@ public static class ProjectAnalyzer
                     foreach (var exec in t.Tasks.Where(task => task.Name.Equals("Exec", StringComparison.OrdinalIgnoreCase)))
                     {
                         bool match = tagIncludes.Length == 0 ||
-                                     (!string.IsNullOrEmpty(exec.Condition) && tagIncludes.Any(ti => exec.Condition.Contains(ti, StringComparison.OrdinalIgnoreCase))) ||
-                                     (!string.IsNullOrEmpty(exec.GetParameter("Command")) && tagIncludes.Any(ti => exec.GetParameter("Command").Contains(ti, StringComparison.OrdinalIgnoreCase)));
+                            (!string.IsNullOrEmpty(exec.Condition) && tagIncludes.Any(ti => exec.Condition.Contains(ti, StringComparison.OrdinalIgnoreCase))) ||
+                            (!string.IsNullOrEmpty(exec.GetParameter("Command")) && tagIncludes.Any(ti => exec.GetParameter("Command").Contains(ti, StringComparison.OrdinalIgnoreCase)));
                         if (match) return true;
                     }
                 }
             }
-
             if (tagName.Equals("PropertyGroup", StringComparison.OrdinalIgnoreCase))
             {
                 if (project.PropertyGroups.Any(pg => tagIncludes.Any(ti => pg.Condition.Contains(ti, StringComparison.OrdinalIgnoreCase)))) return true;
             }
         }
 
-        // 3. XPath (полная совместимость с логикой TagRemover)
+        // 3. XPath
         foreach (var xpath in xpaths)
         {
-            var elementName = xpath.TrimStart('/').Split('[')[0];
-            var includeMatch = Regex.Match(xpath, @"\[@Include='([^']+)'\]");
-            var nameMatch = Regex.Match(xpath, @"\[@Name='([^']+)'\]");
-
-            string includeValue = includeMatch.Success ? includeMatch.Groups[1].Value : null;
-            string nameValue = nameMatch.Success ? nameMatch.Groups[1].Value : null;
-
-            if (elementName.Equals("Target", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(nameValue))
+            var cleanXpath = xpath.TrimStart('/');
+            var parts = cleanXpath.Split(new[] { '[' }, 2);
+            var elementName = parts[0].Trim('/');
+            string attrValue = null;
+            if (parts.Length > 1)
             {
-                if (project.Targets.Any(t => t.Name.Equals(nameValue, StringComparison.OrdinalIgnoreCase))) return true;
+                var m = Regex.Match(parts[1], @"@(\w+)='([^']+)'");
+                if (m.Success) attrValue = m.Groups[2].Value;
             }
-            else if (!string.IsNullOrEmpty(includeValue))
+
+            if (project.Properties.Any(p => p.Name.Equals(elementName, StringComparison.OrdinalIgnoreCase) &&
+                (attrValue == null || p.Name.Equals(attrValue, StringComparison.OrdinalIgnoreCase))))
+                return true;
+
+            if (elementName.Equals("Target", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(attrValue))
             {
-                if (project.Items.Any(i => i.ItemType.Equals(elementName, StringComparison.OrdinalIgnoreCase) && i.Include.Equals(includeValue, StringComparison.OrdinalIgnoreCase))) return true;
+                if (project.Targets.Any(t => t.Name.Equals(attrValue, StringComparison.OrdinalIgnoreCase))) return true;
+            }
+            else if (!string.IsNullOrEmpty(attrValue))
+            {
+                if (project.Items.Any(i => i.ItemType.Equals(elementName, StringComparison.OrdinalIgnoreCase) &&
+                    i.Include.Equals(attrValue, StringComparison.OrdinalIgnoreCase))) return true;
             }
             else
             {
