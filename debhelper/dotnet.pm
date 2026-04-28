@@ -121,8 +121,9 @@ sub new {
         }
 
         $sdkver = $this->get_sdk_version();
-        $sdkver =~ s/\.\d+$//;
+        $this->{sdk_version} = $sdkver;
 
+        $sdkver =~ s/\.\d+$//;
         $this->{target_framework} = 'net' . $sdkver;
 
         my $changelog = Dpkg::Changelog::Debian->new(range => {"count" => 1});
@@ -149,6 +150,10 @@ sub new {
 
 sub configure {
         my $this=shift;
+        
+        if (-e $this->get_sourcepath("global.json")) {
+                $this->patchglobaljson();
+        }
 
         if ($this->{buildfiles}) {
                 foreach my $buildfile (@{$this->{buildfiles}}) {
@@ -186,6 +191,52 @@ sub patchproj {
         }
 }
 
+sub patchglobaljson {
+        my $this=shift;
+        my $fh;
+        my $modified = 0;
+
+        open ($fh, "<", $this->get_sourcepath("global.json"))
+          or error("Can't open file global.json");
+        local $/;
+        my $global = decode_json(<$fh>);
+        close $fh;
+
+        my $sdk_version = ${this}->{sdk_version};
+
+        if (exists $global->{sdk}) {
+                verbose_print("overriding sdk version in global.json");
+                $global->{sdk}{rollForward} = "latestMajor";
+                $modified = 1;
+        }
+        if (exists $global->{tools}) {
+                if (exists $global->{tools}{dotnet}) {
+                        verbose_print("overriding tools.dotnet version");
+                        $global->{tools}{dotnet} = ${this}->{sdk_version};
+                        $modified = 1;
+                }
+                if (exists $global->{tools}{runtimes}) {
+                        verbose_print("dropping tools.runtimes.dotnet");
+                        #$global->{tools}{runtimes}{dotnet} = [($sdk_version)];
+                        delete $global->{tools}{runtimes};
+                        $modified = 1;
+                }
+        }
+        if (exists $global->{"native-tools"}) {
+                verbose_print("dropping native-tools from global.json");
+                delete $global->{"native-tools"};
+                $modified = 1;
+        }
+        if ($modified) {
+                restore_file_on_clean($this->get_sourcepath("global.json"));
+
+                open ($fh, ">", $this->get_sourcepath("global.json"))
+                  or error("Can't open file global.json");
+                print $fh to_json($global, {pretty => 1});
+                close $fh;
+        }
+}
+
 sub make_patchproj_args {
         my @args;
         my $patchfile = shift;
@@ -217,9 +268,19 @@ sub clean {
                 }
         }
 
+        # Can contains specific SDK version
+        if (-e $this->get_sourcepath("global.json")) {
+                rename($this->get_sourcepath("global.json"), $this->get_sourcepath("global.json.disabled"));
+        }
+
         foreach my $command ($this->msbuild_commands('clean', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
+
+        # Restore global.json
+        if (-e $this->get_sourcepath("global.json.disabled")) {
+                rename($this->get_sourcepath("global.json.disabled"), $this->get_sourcepath("global.json"));
+        }
 
         if ($this->{buildfiles}) {
                 foreach my $buildfile (@{$this->{buildfiles}}) {
@@ -369,6 +430,13 @@ sub get_nuget_outputpath {
         my $basedir = shift;
 
         return get_outputpath($basedir) . '/Release';
+}
+
+END {
+        # Restore global.json
+        if (-e "global.json.disabled") {
+                rename("global.json.disabled", "global.json");
+        }
 }
 
 1
