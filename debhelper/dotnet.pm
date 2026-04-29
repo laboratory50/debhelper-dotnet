@@ -33,6 +33,7 @@ my @STANDARD_MSBUILD_FLAGS = qw(
    -p:PackageOutputPath=bin/Release
    -p:ArtifactsPath=bin
    -p:BaseIntermediateOutputPath=obj/
+   -p:TreatWarningsAsErrors=false
 );
 
 sub lib_install_dir {
