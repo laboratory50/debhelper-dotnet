@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (7) testing; urgency=medium
+
+  * Добавлена в зависимость .Net 8.
+
+ -- Шлыков Василий <vash@lab50.net>  Wed, 20 May 2026 15:21:37 +0300
+
 dh-dotnet-lab50 (6) testing; urgency=medium
 
   * Добавлена зависимость libarchive-extract-perl.
