@@ -17,7 +17,9 @@ Depends: debhelper (>= 13),
  libarchive-zip-perl,
  libarchive-extract-perl,
  libdigest-sha-perl,
- libxml-libxml-perl
+ libxml-libxml-perl,
+ mono-host-8.0 | dotnet-host-8.0,
+ mono-runtime-8.0 | dotnet-runtime-8.0,
  ${misc:Depends}, ${perl:Depends}
 Description: сборочная система .Net проектов
  Пакет содержит модуль сборочной системы для Debhelper. Применяется
