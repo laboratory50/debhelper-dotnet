@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (6) testing; urgency=medium
+
+  * Добавлена зависимость libarchive-extract-perl.
+
+ -- Шлыков Василий <vash@lab50.net>  Wed, 20 May 2026 12:50:19 +0300
+
 dh-dotnet-lab50 (5) stable; urgency=medium
 
   * Утилита nh_patchproj.

@@ -15,6 +15,7 @@ Depends: debhelper (>= 13),
  libfile-find-rule-perl,
  libjson-perl,
  libarchive-zip-perl,
+ libarchive-extract-perl,
  libdigest-sha-perl,
  libxml-libxml-perl
  ${misc:Depends}, ${perl:Depends}
