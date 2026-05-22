@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (8) testing; urgency=medium
+
+  * Исправление работы NETBUILD_BUILDFILE.
+
+ -- Шлыков Василий <vash@lab50.net>  Fri, 22 May 2026 13:36:28 +0300
+
 dh-dotnet-lab50 (7) testing; urgency=medium
 
   * Добавлена в зависимость .Net 8.
