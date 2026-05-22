@@ -90,31 +90,64 @@ sub new {
         my $sdkver;
 
         $this->prefer_out_of_source_building(@_);
+        
+        # 🔑 Инициализируем массив buildfiles сразу — для поддержки обоих флагов
+        $this->{buildfiles} = [];
 
+        # 🔹 Обработка NETBUILD_BUILDFILE (явный путь к .csproj)
         if ($ENV{'NETBUILD_BUILDFILE'}) {
                 my $buildfile = $ENV{'NETBUILD_BUILDFILE'};
                 if (-e $this->get_sourcepath($buildfile)) {
-                        $this->{buildfiles} = ($buildfile);
+                        push @{$this->{buildfiles}}, $buildfile;
                 }
                 else {
                         error("$buildfile not found");
                 }
         }
 
+        # 🔹 Обработка NETBUILD_TARGETS + SOLUTION_FILE_PATH (проекты из .sln)
         if ($ENV{'NETBUILD_TARGETS'}) {
-                my @solutions=glob($this->get_sourcepath('*.sln'));
+                my @solutions;
+                if ($ENV{'SOLUTION_FILE_PATH'}) {
+                        my $sln_candidate = $this->get_sourcepath($ENV{'SOLUTION_FILE_PATH'});
+                        if (-e $sln_candidate) {
+                                @solutions = ($sln_candidate);
+                        }
+                        else {
+                                error("Solution file not found: $sln_candidate");
+                        }
+                }
+                else {
+                        @solutions = glob($this->get_sourcepath('*.sln'));
+                }
 
                 if (@solutions > 1) {
-                        error("Multiple .sln files");
+                        error("Multiple .sln files found: " . join(", ", map { "'$_'" } @solutions));
                 }
-                elsif (@solutions > 0) {
-                        %projects = get_sln_projects($solutions[0]);
-                        #print "Projects:\n" . Dumper(\%projects);
-                        my @targets = split /\s+/, $ENV{'NETBUILD_TARGETS'} =~ s/,/ /r;
+                elsif (@solutions == 1) {
+                        my $sln_path = $solutions[0];
+                        my $sln_dir = dirname($sln_path);
+                        my $source_root = $this->get_sourcepath('');
+                        
+                        %projects = get_sln_projects($sln_path);
+                        my $targets_raw = $ENV{'NETBUILD_TARGETS'};
+                        $targets_raw =~ s/,/ /g;
+                        my @targets = grep { length($_) > 0 } split /\s+/, $targets_raw;
+                        
+                        verbose_print("NETBUILD_TARGETS parsed: [" . join(", ", @targets) . "]");
 
                         foreach my $target (@targets) {
                                 if (exists $projects{$target}) {
-                                        push @{$this->{buildfiles}}, $projects{$target};
+                                        my $proj_path = $projects{$target};
+                                        # Если .sln не в корне, префиксируем путь к проекту
+                                        if ($sln_dir && $sln_dir ne '.' && $sln_dir ne $source_root) {
+                                                $proj_path = "$sln_dir/$proj_path";
+                                        }
+                                        verbose_print("Target '$target' → project path: '$proj_path'");
+                                        push @{$this->{buildfiles}}, $proj_path;
+                                }
+                                else {
+                                        verbose_print("Warning: target '$target' not found in $sln_path");
                                 }
                         }
                 }
@@ -136,14 +169,6 @@ sub new {
         $this->{upstream_version} = $version;
 
         $this->{standard_flags} = [ map { s/\$tfm/$this->{target_framework}/r } @STANDARD_MSBUILD_FLAGS ];
-
-#        my @projects=glob($this->get_sourcepath('*.csproj'));
-#
-#        if (@projects > 1) {
-#                error("Multiple .csproj files");
-#        }
-#        elsif (@projects > 0) {
-#        }
 
         return $this;
 }
