@@ -94,7 +94,7 @@ sub new {
         if ($ENV{'NETBUILD_BUILDFILE'}) {
                 my $buildfile = $ENV{'NETBUILD_BUILDFILE'};
                 if (-e $this->get_sourcepath($buildfile)) {
-                        $this->{buildfiles} = ($buildfile);
+                        push @{$this->{buildfiles}}, $buildfile;
                 }
                 else {
                         error("$buildfile not found");
