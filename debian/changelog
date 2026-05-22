@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (9) testing; urgency=medium
+
+  * Добавлен параметр NETBUILD_SOLUTION.
+
+ -- Шлыков Василий <vash@lab50.net>  Fri, 22 May 2026 14:36:33 +0300
+
 dh-dotnet-lab50 (8) testing; urgency=medium
 
   * Исправление работы NETBUILD_BUILDFILE.
