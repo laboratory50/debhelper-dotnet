@@ -77,9 +77,8 @@ sub check_auto_buildable {
 
         if ($ENV{'NETBUILD_BUILDFILE'}) {
                 return (-e $this->get_sourcepath($ENV{'NETBUILD_BUILDFILE'})) ? 1 : 0;
-        } elsif ($ENV{'NETBUILD_SOLUTION'}) {
-                return (-e $this->get_sourcepath($ENV{'NETBUILD_SOLUTION'})) ? 1 : 0;
-        } else {
+        }
+        else {
                 return (-e $this->get_sourcepath('*.sln') || -e $this->get_sourcepath('*.csproj')) ? 1 : 0;
         }
 }
@@ -103,14 +102,7 @@ sub new {
         }
 
         if ($ENV{'NETBUILD_TARGETS'}) {
-                my @solutions;
-
-                if ($ENV{'NETBUILD_SOLUTION'}) {
-                        push @solutions, $ENV{'NETBUILD_SOLUTION'};
-                }
-                else {
-                        @solutions = glob($this->get_sourcepath('*.sln'));
-                }
+                my @solutions=glob($this->get_sourcepath('*.sln'));
 
                 if (@solutions > 1) {
                         error("Multiple .sln files");
@@ -180,22 +172,35 @@ sub patchproj {
         my $buildfile=shift;
         my @args = @_;
         my $patchproj = 'debian/' . lc(basename($buildfile, '.csproj'));
-        
+        my %patchfiles;
+
+        if (-e 'debian/nh_patch') {
+                verbose_print("using debian/nh_patch");
+                %patchfiles = make_patchany_args('debian/nh_patch');
+        }
+
         if (-e $patchproj) {
                 verbose_print("using $patchproj");
-                push @args, make_patchproj_args($patchproj);
+                $patchfiles{$buildfile} = [ make_patchproj_args($patchproj) ];
         }
-        
-        if (@args) {
+
+        # Нет определенных файлов, но аргументы для модификации есть
+        if (!%patchfiles and @args) {
                 my @willpatch = qx_cmd('nh_patchproj', 'clean', '--path', $buildfile, '--no-act', @args);
                 foreach my $file (@willpatch) {
                         chomp($file);
-                        restore_file_on_clean($file);
+                        $patchfiles{$file} = ();
                 }
+        }
 
-                verbose_print("patching $buildfile");
-                push @args, '--verbose' if $dh{VERBOSE};
-                $this->doit_in_sourcedir('nh_patchproj', 'clean', '--path', $buildfile, @args);
+        push @args, '--verbose' if $dh{VERBOSE};
+
+        print Dumper(\%patchfiles);
+
+        foreach my $file (keys %patchfiles) {
+                verbose_print("patching $file");
+                restore_file_on_clean($file);
+                $this->doit_in_sourcedir('nh_patchproj', 'clean', '--path', $file, @args, @{ $patchfiles{$file} });
         }
 }
 
@@ -246,24 +251,42 @@ sub patchglobaljson {
 }
 
 sub make_patchproj_args {
-        my @args;
         my $patchfile = shift;
+        my @args;
 
-        if (-e $patchfile) {
-                open my $fd, '<', $patchfile or error("Cannot open $patchfile: $!");
+        open my $fd, '<', $patchfile or error("Cannot open $patchfile: $!");
 
-                while (<$fd>) {
-                        # Пропуск строк, начинающихся с #
-                        next if /^#/;
-                        chomp;
-                        my @parts = split ' ';
+        while (<$fd>) {
+                # Пропуск строк, начинающихся с #
+                next if /^#/;
+                chomp;
+                my @parts = split ' ';
 
-                        push @args, '--' . shift @parts;
-                        push @args, @parts;
-                }
-                close $fd;
+                push @args, '--' . shift @parts;
+                push @args, @parts;
         }
+
+        close $fd;
         return @args;
+}
+
+sub make_patchany_args {
+        my $patchfile = shift;
+        my %files;
+
+        open my $fd, '<', $patchfile or error("Cannot open $patchfile: $!");
+
+        while (<$fd>) {
+                # Пропуск строк, начинающихся с #
+                next if /^#/;
+                chomp;
+                my @parts = split ' ';
+
+                $files{shift @parts} = \@parts;
+        }
+
+        close $fd;
+        return %files;
 }
 
 sub clean {
@@ -403,7 +426,6 @@ sub msbuild_command {
 
 sub get_sln_projects {
         my ($slnfile) = shift;
-        my $slnpath = dirname($slnfile);
         my %projects;
 
         open my $fh, '<', $slnfile or error("Cannot open $slnfile: $!");
@@ -411,11 +433,7 @@ sub get_sln_projects {
         while (my $line = <$fh>) {
                 if ($line =~ /^Project\("\{[^}]+\}"\)\s*=\s*"([^"]+)",\s*"([^"]+)"/) {
                         my ($name, $path) = ($1, $2);
-                        if ($slnpath eq '.') {
-                                $projects{$name} = $path =~ s/\\/\//gr;
-                        } else {
-                                $projects{$name} = $slnpath . '/' . ($path =~ s/\\/\//gr);
-                        }
+                        $projects{$name} = $path =~ s/\\/\//gr;
                 }
         }
 
