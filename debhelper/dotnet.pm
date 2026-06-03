@@ -11,7 +11,7 @@ use warnings;
 use JSON;
 use File::Basename;
 use File::Find::Rule qw/ find rule /;
-use Data::Dumper;
+#use Data::Dumper;
 use Dpkg::Changelog::Debian;
 use Debian::Debhelper::Dh_Lib qw(%dh error verbose_print restore_file_on_clean qx_cmd dirname);
 use parent qw(Debian::Debhelper::Buildsystem);
@@ -78,6 +78,9 @@ sub check_auto_buildable {
         if ($ENV{'NETBUILD_BUILDFILE'}) {
                 return (-e $this->get_sourcepath($ENV{'NETBUILD_BUILDFILE'})) ? 1 : 0;
         }
+        elsif ($ENV{'NETBUILD_SOLUTION'}) {
+                return (-e $this->get_sourcepath($ENV{'NETBUILD_SOLUTION'})) ? 1 : 0;
+        }
         else {
                 return (-e $this->get_sourcepath('*.sln') || -e $this->get_sourcepath('*.csproj')) ? 1 : 0;
         }
@@ -102,7 +105,13 @@ sub new {
         }
 
         if ($ENV{'NETBUILD_TARGETS'}) {
-                my @solutions=glob($this->get_sourcepath('*.sln'));
+                my @solutions;
+                if ($ENV{'NETBUILD_SOLUTION'}) {
+                        push @solutions, $ENV{'NETBUILD_SOLUTION'};
+                }
+                else {
+                        @solutions = glob($this->get_sourcepath('*.sln'));
+                }
 
                 if (@solutions > 1) {
                         error("Multiple .sln files");
@@ -194,8 +203,6 @@ sub patchproj {
         }
 
         push @args, '--verbose' if $dh{VERBOSE};
-
-        print Dumper(\%patchfiles);
 
         foreach my $file (keys %patchfiles) {
                 verbose_print("patching $file");
@@ -426,6 +433,7 @@ sub msbuild_command {
 
 sub get_sln_projects {
         my ($slnfile) = shift;
+        my $slnpath = dirname($slnfile);
         my %projects;
 
         open my $fh, '<', $slnfile or error("Cannot open $slnfile: $!");
@@ -433,7 +441,12 @@ sub get_sln_projects {
         while (my $line = <$fh>) {
                 if ($line =~ /^Project\("\{[^}]+\}"\)\s*=\s*"([^"]+)",\s*"([^"]+)"/) {
                         my ($name, $path) = ($1, $2);
-                        $projects{$name} = $path =~ s/\\/\//gr;
+                        if ($slnpath eq '.') {
+                                $projects{$name} = $path =~ s/\\/\//gr;
+                        }
+                        else {
+                                $projects{$name} = $slnpath . '/' . ($path =~ s/\\/\//gr);
+                        }
                 }
         }
 
