@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (11) testing; urgency=medium
+
+  * Вернул поддержку NETBUILD_SOLUTION.
+
+ -- Шлыков Василий <vash@lab50.net>  Wed, 03 Jun 2026 12:19:18 +0300
+
 dh-dotnet-lab50 (10) testing; urgency=medium
 
   * Задание параметров nh_patchproj через debian/nh_patch.
