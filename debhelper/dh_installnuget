@@ -88,7 +88,10 @@ init(options => {
     'nuget-path=s'  => \$nuget_path,
 });
 
-my $dhlib_version = version->parse( $Debian::Debhelper::Dh_Version::version  =~ s/[^\d._]//g );
+my $dhlibver = $Debian::Debhelper::Dh_Version::version;
+$dhlibver =~ s/^(\d+\.\d+).*/$1/;
+
+my $dhlib_version = version->parse( $dhlibver );
 my $dhlib_modern = version->parse("13.21");
 
 $nuget_path = $default_path unless $nuget_path;
