@@ -71,7 +71,9 @@ This program is not a part of debhelper.
 
 use strict;
 use warnings;
+use version;
 use Debian::Debhelper::Dh_Lib;
+use Debian::Debhelper::Dh_Version;
 use Digest::SHA qw(sha512_base64 sha256_base64);
 use Archive::Zip qw(:ERROR_CODES);
 use Archive::Extract;
@@ -86,6 +88,9 @@ init(options => {
     'nuget-path=s'  => \$nuget_path,
 });
 
+my $dhlib_version = version->parse( $Debian::Debhelper::Dh_Version::version  =~ s/[^\d._]//g );
+my $dhlib_modern = version->parse("13.21");
+
 $nuget_path = $default_path unless $nuget_path;
 
 # Нормализация пути (убираем leading и trailing slash)
@@ -97,14 +102,19 @@ verbose_print("Installation path: $nuget_path") if $dh{V};
 if (-e 'debian/nuget' or glob('debian/*.nuget')) {
     # Если заданы файлы, работаем по ним
     foreach my $package (@{$dh{DOPACKAGES}}) {
-        my $nugetlistfile = pkgfile(
-            {
-                'named'                            => 1,
-                'support-architecture-restriction' => 0
-            },
-            $package,
-            'nuget'
-        );
+        my $nugetlistfile;
+        if ($dhlib_version >= $dhlib_modern) {
+            $nugetlistfile = pkgfile(
+                {
+                    'named'                            => 1,
+                    'support-architecture-restriction' => 0
+                },
+                $package,
+                'nuget'
+            );
+        else {
+            $nugetlistfile = pkgfile($package, 'nuget');
+        }
 
         next unless $nugetlistfile;
 
