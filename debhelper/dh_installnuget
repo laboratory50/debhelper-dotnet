@@ -112,7 +112,7 @@ if (-e 'debian/nuget' or glob('debian/*.nuget')) {
                 $package,
                 'nuget'
             );
-        else {
+        } else {
             $nugetlistfile = pkgfile($package, 'nuget');
         }
 
