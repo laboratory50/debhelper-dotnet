@@ -311,7 +311,7 @@ sub clean {
                 rename($this->get_sourcepath("global.json"), $this->get_sourcepath("global.json.disabled"));
         }
 
-        foreach my $command ($this->msbuild_commands('clean', @_)) {
+        foreach my $command ($this->msbuild_commands('clean', '-p:TreatWarningsAsErrors=false', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
 
@@ -404,6 +404,7 @@ sub msbuild_command {
         if ($step eq 'restore' or $step eq 'pack') {
                 push @options, '-p:TargetFrameworks=';
                 push @options, '-p:TargetFramework=' . $this->{target_framework};
+                push @options, '-p:NoWarn=NU1603';
         } else {
                 push @options, '--framework', $this->{target_framework};
         }
@@ -411,6 +412,7 @@ sub msbuild_command {
         if ($step eq 'build' or $step eq 'test') {
                 push @options, '-c', 'Release';
                 push @options, '--no-restore';
+                push @options, '-p:NoWarn=NU1603';
         }
 
         if ($step eq 'pack') {
