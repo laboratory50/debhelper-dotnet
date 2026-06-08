@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (15) testing; urgency=medium
+
+  * Исправлены синтаксические ошибки.
+
+ -- Шлыков Василий <vash@lab50.net>  Mon, 08 Jun 2026 10:55:26 +0300
+
 dh-dotnet-lab50 (14) testing; urgency=medium
 
   * Отключение предупреждений в clean. И NU1603 при сборке.
