@@ -311,7 +311,7 @@ sub clean {
                 rename($this->get_sourcepath("global.json"), $this->get_sourcepath("global.json.disabled"));
         }
 
-        foreach my $command ($this->msbuild_commands('clean', '-p:TreatWarningsAsErrors=false', @_)) {
+        foreach my $command ($this->msbuild_commands('clean', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
 
@@ -363,7 +363,8 @@ sub install {
                         @nugets or error("NuGet packages not found");
                         $this->doit_in_sourcedir('install', '-D', '-t', $nugetdir, @nugets);
                 }
-        } else {
+        }
+        else {
                 my @assemblies = glob($this->get_target_outputpath('.') . '/*.dll');
                 @assemblies or error("Assemblies not found");
                 $this->doit_in_sourcedir('install', '-D', '-t', $libdir, @assemblies);
@@ -382,7 +383,8 @@ sub msbuild_commands {
                 foreach my $buildfile (@{$this->{buildfiles}}) {
                         push @result, $this->msbuild_command($buildfile, @_);
                 }
-        } else {
+        }
+        else {
                 push @result, $this->msbuild_command(undef, @_);
         }
 
@@ -401,23 +403,32 @@ sub msbuild_command {
                 push @options, $buildfile;
         }
 
+        if ($step ne 'restore') {
+                push @options, '-c', 'Release';
+        }
+
         if ($step eq 'restore' or $step eq 'pack') {
                 push @options, '-p:TargetFrameworks=';
                 push @options, '-p:TargetFramework=' . $this->{target_framework};
-                push @options, '-p:NoWarn=NU1603';
-        } else {
+        }
+        else {
                 push @options, '--framework', $this->{target_framework};
         }
 
         if ($step eq 'build' or $step eq 'test') {
-                push @options, '-c', 'Release';
                 push @options, '--no-restore';
-                push @options, '-p:NoWarn=NU1603';
         }
 
         if ($step eq 'pack') {
                 push @options, '--no-build';
                 push @options, '-p:PackageVersion=' . $this->{upstream_version};
+        }
+
+        if ($step eq 'clean') {
+                push @options, '-p:TreatWarningsAsErrors=false';
+        }
+        else {
+                push @options, '-p:NoWarn=NU1603';
         }
 
         if ($this->{targets}) {
