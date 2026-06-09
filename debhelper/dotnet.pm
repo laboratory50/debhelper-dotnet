@@ -146,6 +146,9 @@ sub new {
 
         $this->{standard_flags} = [ map { s/\$tfm/$this->{target_framework}/r } @STANDARD_MSBUILD_FLAGS ];
 
+        push @{$this->{standard_flags}}, '-p:BuildInParallel=false' if $this->get_parallel() == 1;
+        push @{$this->{standard_flags}}, '-v:n' if $dh{VERBOSE};
+
 #        my @projects=glob($this->get_sourcepath('*.csproj'));
 #
 #        if (@projects > 1) {
@@ -153,7 +156,6 @@ sub new {
 #        }
 #        elsif (@projects > 0) {
 #        }
-
         return $this;
 }
 
@@ -438,7 +440,6 @@ sub msbuild_command {
         }
 
         push @options, @{$this->{standard_flags}};
-        push @options, '-v', 'n' if $dh{VERBOSE};
         push @options, @userflags;
 
         return ['dotnet', $step, @options];
