@@ -25,9 +25,9 @@ sub IS_GENERATOR_BUILD_SYSTEM {
 }
 
 my @STANDARD_MSBUILD_FLAGS = qw(
-   -nr:false
    --nologo
    --disable-build-servers
+   -p:NodeReuse=false
    -p:BaseOutputPath=bin
    -p:OutputPath=bin/Release/$tfm
    -p:PackageOutputPath=bin/Release
