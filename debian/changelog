@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (16) testing; urgency=medium
+
+  * Использование NodeReuse=false.
+
+ -- Шлыков Василий <vash@lab50.net>  Tue, 09 Jun 2026 13:12:03 +0300
+
 dh-dotnet-lab50 (15) testing; urgency=medium
 
   * Исправлены синтаксические ошибки.
