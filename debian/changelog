@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (18) testing; urgency=medium
+
+  * Борьба за воспроизводимость
+
+ -- Georgiy Sgibnev <georgiy@lab50.net>  Thu, 01 Oct 2026 22:46:52 +0300
+
 dh-dotnet-lab50 (17) testing; urgency=medium
 
   * Обработка отключения параллельной сборки.

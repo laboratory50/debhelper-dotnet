@@ -11,6 +11,7 @@ use warnings;
 use JSON;
 use File::Basename;
 use File::Find::Rule qw/ find rule /;
+use Cwd qw(cwd);
 #use Data::Dumper;
 use Dpkg::Changelog::Debian;
 use Debian::Debhelper::Dh_Lib qw(%dh error verbose_print restore_file_on_clean qx_cmd dirname);
@@ -24,15 +25,22 @@ sub IS_GENERATOR_BUILD_SYSTEM {
         return 0;
 }
 
-my @STANDARD_MSBUILD_FLAGS = qw(
-   --nologo
-   --disable-build-servers
-   -p:NodeReuse=false
-   -p:BaseOutputPath=bin
-   -p:OutputPath=bin/Release/$tfm
-   -p:PackageOutputPath=bin/Release
-   -p:ArtifactsPath=bin
-   -p:BaseIntermediateOutputPath=obj/
+my $current_path = cwd;
+my @STANDARD_MSBUILD_FLAGS = (
+   '--nologo',
+   '--disable-build-servers',
+   '-p:NodeReuse=false',
+   '-p:BaseOutputPath=bin',
+   '-p:OutputPath=bin/Release/$tfm',
+   '-p:PackageOutputPath=bin/Release',
+   '-p:ArtifactsPath=bin',
+   '-p:BaseIntermediateOutputPath=obj/',
+   '-p:Deterministic=true',
+   '-p:ContinuousIntegrationBuild=true',
+   '-p:EnableSourceLink=false',
+   '-p:EnableSourceControlManagerQueries=false',
+   '-p:PathMap="' . $current_path . '=/src"',
+   '-p:NodeReuse=false'
 );
 
 sub lib_install_dir {
@@ -332,7 +340,7 @@ sub clean {
 
 sub build {
         my $this=shift;
-
+        # print("Building with SOURCE_DATE_EPOCH=$ENV{SOURCE_DATE_EPOCH}...\n");
         $ENV{NUGET_OFFLINE} = 1;
         foreach my $command ($this->msbuild_commands('build', @_)) {
                 $this->doit_in_sourcedir(@$command);
@@ -340,6 +348,10 @@ sub build {
         foreach my $command ($this->msbuild_commands('pack', @_)) {
                 $this->doit_in_sourcedir(@$command);
 	}
+        # print("Done building & packaging with env vars:\n");
+        # foreach my $key (sort keys %ENV) {
+        #         print "    $key=$ENV{$key}\n";
+        # }
 }
 
 sub test {
