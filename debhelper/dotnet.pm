@@ -27,20 +27,25 @@ sub IS_GENERATOR_BUILD_SYSTEM {
 
 my $current_path = cwd;
 my @STANDARD_MSBUILD_FLAGS = (
-   '--nologo',
-   '--disable-build-servers',
-   '-p:NodeReuse=false',
-   '-p:BaseOutputPath=bin',
-   '-p:OutputPath=bin/Release/$tfm',
-   '-p:PackageOutputPath=bin/Release',
-   '-p:ArtifactsPath=bin',
-   '-p:BaseIntermediateOutputPath=obj/',
-   '-p:Deterministic=true',
-   '-p:ContinuousIntegrationBuild=true',
-   '-p:EnableSourceLink=false',
-   '-p:EnableSourceControlManagerQueries=false',
-   '-p:PathMap="' . $current_path . '=/src"',
-   '-p:NodeReuse=false'
+    '--nologo',
+    '--disable-build-servers',
+    '-p:NodeReuse=false',
+    '-p:BaseOutputPath=bin',
+    '-p:OutputPath=bin/Release/$tfm',
+    '-p:PackageOutputPath=bin/Release',
+    '-p:ArtifactsPath=bin',
+    '-p:BaseIntermediateOutputPath=obj/',
+    '-p:Deterministic=true',
+    '-p:ContinuousIntegrationBuild=true',
+    '-p:EnableSourceLink=false',
+    '-p:EnableSourceControlManagerQueries=false',
+    '-p:PathMap="' . $current_path . '=/src"',
+    '-p:NodeReuse=false',
+    '-p:MinVerSkip=true',
+    '-p:NtsOfficialRelease=true',
+    '-p:PublicRelease=true',
+    '-p:DisableGitVersionTask=true',
+    '-p:IncludeSourceRevisionInInformationalVersion=false'
 );
 
 sub lib_install_dir {
