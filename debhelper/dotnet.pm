@@ -11,7 +11,7 @@ use warnings;
 use JSON;
 use File::Basename;
 use File::Find::Rule qw/ find rule /;
-use Cwd qw(cwd);
+use Cwd 'abs_path';
 #use Data::Dumper;
 use Dpkg::Changelog::Debian;
 use Debian::Debhelper::Dh_Lib qw(%dh error verbose_print restore_file_on_clean qx_cmd dirname);
@@ -25,7 +25,7 @@ sub IS_GENERATOR_BUILD_SYSTEM {
         return 0;
 }
 
-my $current_path = cwd;
+my $current_path = abs_path('.');
 my @STANDARD_MSBUILD_FLAGS = (
     '--nologo',
     '--disable-build-servers',
@@ -45,7 +45,10 @@ my @STANDARD_MSBUILD_FLAGS = (
     '-p:NtsOfficialRelease=true',
     '-p:PublicRelease=true',
     '-p:DisableGitVersionTask=true',
-    '-p:IncludeSourceRevisionInInformationalVersion=false'
+    '-p:IncludeSourceRevisionInInformationalVersion=false',
+    '-p:OfficialBuild=true',
+    '-p:DotNetUseShippingVersions=true',
+    '-p:OfficialBuildId=20260101.1'
 );
 
 sub lib_install_dir {
