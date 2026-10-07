@@ -40,7 +40,6 @@ my @STANDARD_MSBUILD_FLAGS = (
     '-p:EnableSourceLink=false',
     '-p:EnableSourceControlManagerQueries=false',
     '-p:PathMap="' . $current_path . '=/src"',
-    '-p:NodeReuse=false',
     '-p:MinVerSkip=true',
     '-p:NtsOfficialRelease=true',
     '-p:PublicRelease=true',
