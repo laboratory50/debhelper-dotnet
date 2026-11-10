@@ -109,6 +109,19 @@ sub new {
 
         $this->prefer_out_of_source_building(@_);
 
+        if ($ENV{'NETBUILD_BUILDFILES'}) {
+                my $build_files = split /\s+/, $ENV{'NETBUILD_BUILDFILES'};
+                foreach my $file ($build_files) {
+                        if (-e $this->get_sourcepath($file)) {
+                                push @{$this->{buildfiles}}, $file;
+                        }
+                        else {
+                                error("$file not found");
+                        }
+                }
+        }
+
+        # Deprecated!
         if ($ENV{'NETBUILD_BUILDFILE'}) {
                 my $buildfile = $ENV{'NETBUILD_BUILDFILE'};
                 if (-e $this->get_sourcepath($buildfile)) {

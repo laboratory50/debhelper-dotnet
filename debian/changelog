@@ -1,3 +1,9 @@
+dh-dotnet-lab50 (19) testing; urgency=medium
+
+  * Поддержка NETBUILD_BUILDFILES
+
+ -- Georgiy Sgibnev <georgiy@lab50.net>  Tue, 10 Nov 2026 18:29:11 +0300
+
 dh-dotnet-lab50 (18) testing; urgency=medium
 
   * Борьба за воспроизводимость
